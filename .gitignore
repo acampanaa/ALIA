@@ -8,3 +8,6 @@ out/
 .vercel
 *.tsbuildinfo
 next-env.d.ts
+
+# proyecto ajeno (repo git propio) generado por una herramienta externa en la raíz
+.slides-publish/

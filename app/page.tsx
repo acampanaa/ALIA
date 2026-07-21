@@ -43,9 +43,13 @@ export default function Home() {
   const [modoAcompanamiento, setModoAcompanamiento] = useState(true);
   const [velocidadVoz, setVelocidadVoz] = useState(0.95);
   const [escuchandoComando, setEscuchandoComando] = useState(false);
+  const [panelAcompanamientoAbierto, setPanelAcompanamientoAbierto] = useState(false);
+  const [errorVoz, setErrorVoz] = useState<string | null>(null);
   const campoTexto = useRef<HTMLTextAreaElement>(null);
   const resultadoEnPantalla = useRef<HTMLDivElement>(null);
   const alertaError = useRef<HTMLDivElement>(null);
+  const botonAcompanamiento = useRef<HTMLButtonElement>(null);
+  const panelAcompanamiento = useRef<HTMLElement>(null);
   const ultimoMensajeVoz = useRef(
     "Puedes fotografiar o subir un documento. También puedes pegar su texto.",
   );
@@ -62,16 +66,44 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    function avisarVozNoDisponible() {
-      const mensaje =
-        "Este dispositivo no tiene instalada una voz en español. Instala una voz en español en los ajustes de idioma para usar la guía. ALIA no usará una voz en inglés.";
-      setError(mensaje);
+    function avisarErrorVoz(event: Event) {
+      const mensaje = event instanceof CustomEvent && typeof event.detail === "string"
+        ? event.detail
+        : "No pudimos reproducir la voz en español.";
+      setErrorVoz(mensaje);
       setAnuncio(mensaje);
     }
 
-    window.addEventListener("alia:voz-no-disponible", avisarVozNoDisponible);
-    return () => window.removeEventListener("alia:voz-no-disponible", avisarVozNoDisponible);
+    window.addEventListener("alia:voz-error", avisarErrorVoz);
+    return () => window.removeEventListener("alia:voz-error", avisarErrorVoz);
   }, []);
+
+  useEffect(() => {
+    if (!panelAcompanamientoAbierto) return;
+
+    function cerrarAlTocarFuera(event: PointerEvent) {
+      const objetivo = event.target as Node;
+      if (
+        !panelAcompanamiento.current?.contains(objetivo)
+        && !botonAcompanamiento.current?.contains(objetivo)
+      ) {
+        setPanelAcompanamientoAbierto(false);
+      }
+    }
+
+    function cerrarConEscape(event: KeyboardEvent) {
+      if (event.key !== "Escape") return;
+      setPanelAcompanamientoAbierto(false);
+      botonAcompanamiento.current?.focus();
+    }
+
+    document.addEventListener("pointerdown", cerrarAlTocarFuera);
+    document.addEventListener("keydown", cerrarConEscape);
+    return () => {
+      document.removeEventListener("pointerdown", cerrarAlTocarFuera);
+      document.removeEventListener("keydown", cerrarConEscape);
+    };
+  }, [panelAcompanamientoAbierto]);
 
   useEffect(() => {
     if (mostrarTexto) campoTexto.current?.focus();
@@ -86,6 +118,7 @@ export default function Home() {
   }, [error]);
 
   function decir(mensaje: string, velocidad = velocidadVoz) {
+    setErrorVoz(null);
     ultimoMensajeVoz.current = mensaje;
     hablar(mensaje, { velocidad });
   }
@@ -379,14 +412,16 @@ export default function Home() {
         </div>
         <div className="utilidades" aria-label="Opciones de accesibilidad">
           <button
+            ref={botonAcompanamiento}
             type="button"
             className={"boton-utilidad " + (modoAcompanamiento ? "activa" : "")}
-            aria-pressed={modoAcompanamiento}
+            aria-label={"Acompañamiento. Voz de ALIA " + (modoAcompanamiento ? "activada" : "apagada")}
+            aria-expanded={panelAcompanamientoAbierto}
             aria-controls="modo-acompanamiento"
-            onClick={alternarModoAcompanamiento}
+            onClick={() => setPanelAcompanamientoAbierto((abierto) => !abierto)}
           >
             <Icono nombre="volumen" />
-            <span>{modoAcompanamiento ? "Apagar voz de ALIA" : "Activar voz de ALIA"}</span>
+            <span>Acompañamiento</span>
           </button>
           <button
             type="button"
@@ -397,6 +432,104 @@ export default function Home() {
             <Icono nombre="contraste" />
             <span>{altaVisibilidad ? "Vista normal" : "Alto contraste"}</span>
           </button>
+
+          {panelAcompanamientoAbierto && (
+            <section
+              ref={panelAcompanamiento}
+              id="modo-acompanamiento"
+              className={"acompanamiento " + (modoAcompanamiento ? "acompanamiento-activo" : "")}
+              aria-labelledby="titulo-acompanamiento"
+            >
+              <header className="acompanamiento-encabezado">
+                <div>
+                  <span className="acompanamiento-estado">
+                    {modoAcompanamiento ? "Voz activa" : "Voz apagada"}
+                  </span>
+                  <h2 id="titulo-acompanamiento">Acompañamiento</h2>
+                </div>
+                <button
+                  type="button"
+                  className="acompanamiento-cerrar"
+                  aria-label="Cerrar opciones de acompañamiento"
+                  onClick={() => {
+                    setPanelAcompanamientoAbierto(false);
+                    botonAcompanamiento.current?.focus();
+                  }}
+                >
+                  <Icono nombre="cerrar" />
+                </button>
+              </header>
+
+              <p className="acompanamiento-descripcion">
+                ALIA puede guiarte y controlar el documento con la voz.
+              </p>
+
+              {errorVoz && <p className="acompanamiento-error" role="status">{errorVoz}</p>}
+
+              <div className="controles-acompanamiento">
+                <button
+                  type="button"
+                  className={"boton " + (modoAcompanamiento ? "boton-discreto" : "boton-primario")}
+                  aria-pressed={modoAcompanamiento}
+                  onClick={alternarModoAcompanamiento}
+                >
+                  <Icono nombre="volumen" />
+                  {modoAcompanamiento ? "Apagar voz" : "Activar voz"}
+                </button>
+
+                <label className="control-velocidad" htmlFor="velocidad-voz">
+                  <span>Velocidad</span>
+                  <select
+                    id="velocidad-voz"
+                    value={velocidadVoz}
+                    disabled={!modoAcompanamiento}
+                    onChange={(event) => cambiarVelocidad(Number(event.target.value))}
+                  >
+                    <option value={0.8}>Lenta</option>
+                    <option value={0.95}>Normal</option>
+                    <option value={1.15}>Rápida</option>
+                  </select>
+                </label>
+
+                <button
+                  type="button"
+                  className={"boton boton-primario boton-voz " + (escuchandoComando ? "esta-escuchando" : "")}
+                  disabled={!modoAcompanamiento || escuchandoComando || estado === "escuchando"}
+                  aria-pressed={escuchandoComando}
+                  onClick={escucharComando}
+                >
+                  <Icono nombre="microfono" />
+                  {escuchandoComando ? "Te escucho. Habla ahora" : "Dar una orden"}
+                </button>
+
+                <div className="acciones-narracion">
+                  <button
+                    type="button"
+                    className="boton boton-secundario"
+                    disabled={!modoAcompanamiento || escuchandoComando}
+                    onClick={repetirUltimoMensaje}
+                  >
+                    Repetir
+                  </button>
+                  <button
+                    type="button"
+                    className="boton boton-discreto"
+                    disabled={!modoAcompanamiento}
+                    onClick={() => {
+                      callar();
+                      setAnuncio("Narración detenida.");
+                    }}
+                  >
+                    Detener
+                  </button>
+                </div>
+              </div>
+
+              <p className="comandos-disponibles">
+                Di: “leer resumen”, “siguiente paso”, “repetir”, “detener” o “nuevo documento”.
+              </p>
+            </section>
+          )}
         </div>
       </header>
 
@@ -420,89 +553,6 @@ export default function Home() {
             })}
           </ol>
         </nav>
-
-        <section
-          id="modo-acompanamiento"
-          className={"acompanamiento " + (modoAcompanamiento ? "acompanamiento-activo" : "")}
-          aria-labelledby="titulo-acompanamiento"
-        >
-          <div className="acompanamiento-informacion">
-            <span className="acompanamiento-estado">
-              {modoAcompanamiento ? "Voz de ALIA activa" : "Voz de ALIA apagada"}
-            </span>
-            <h2 id="titulo-acompanamiento">Modo acompañamiento</h2>
-            <p>
-              {modoAcompanamiento
-                ? "ALIA te guía y permite controlar el documento con la voz."
-                : "Actívalo si quieres recibir indicaciones habladas. Si usas TalkBack, puedes dejarlo apagado."}
-            </p>
-          </div>
-
-          <div className="controles-acompanamiento">
-            <button
-              type="button"
-              className={"boton " + (modoAcompanamiento ? "boton-discreto" : "boton-primario")}
-              aria-pressed={modoAcompanamiento}
-              onClick={alternarModoAcompanamiento}
-            >
-              <Icono nombre="volumen" />
-              {modoAcompanamiento ? "Apagar voz" : "Activar acompañamiento"}
-            </button>
-
-            <label className="control-velocidad" htmlFor="velocidad-voz">
-              <span>Velocidad</span>
-              <select
-                id="velocidad-voz"
-                value={velocidadVoz}
-                disabled={!modoAcompanamiento}
-                onChange={(event) => cambiarVelocidad(Number(event.target.value))}
-              >
-                <option value={0.8}>Lenta</option>
-                <option value={0.95}>Normal</option>
-                <option value={1.15}>Rápida</option>
-              </select>
-            </label>
-
-            <button
-              type="button"
-              className={"boton boton-primario boton-voz " + (escuchandoComando ? "esta-escuchando" : "")}
-              disabled={!modoAcompanamiento || escuchandoComando || estado === "escuchando"}
-              aria-pressed={escuchandoComando}
-              onClick={escucharComando}
-            >
-              <Icono nombre="microfono" />
-              {escuchandoComando ? "Te escucho. Habla ahora" : "Dar una orden"}
-            </button>
-
-            <button
-              type="button"
-              className="boton boton-secundario"
-              disabled={!modoAcompanamiento || escuchandoComando}
-              onClick={repetirUltimoMensaje}
-            >
-              <Icono nombre="volumen" />
-              Repetir
-            </button>
-
-            <button
-              type="button"
-              className="boton boton-discreto"
-              disabled={!modoAcompanamiento}
-              onClick={() => {
-                callar();
-                setAnuncio("Narración detenida.");
-              }}
-            >
-              Detener
-            </button>
-          </div>
-
-          {modoAcompanamiento && (
-            <p className="comandos-disponibles">
-              Puedes decir: “leer resumen”, “siguiente paso”, “repetir”, “detener” o “nuevo documento”.
-            </p>
-          )}
-        </section>
 
         {error && (
           <div ref={alertaError} tabIndex={-1} className="aviso aviso-error" role="alert">
