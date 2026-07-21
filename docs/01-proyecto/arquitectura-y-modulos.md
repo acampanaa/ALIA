@@ -10,7 +10,7 @@ components/                → BotonGigante, IndicadorVoz,
                              ResultadoDocumento                  [FRONTEND]
 lib/speech.ts              → hablar() / escuchar() (Web Speech)  [FRONTEND]
 
-app/api/narrate/route.ts   → foto/texto → IA visión → JSON       [BACKEND]
+app/api/narrate/route.ts   → archivo/texto → IA multimodal → JSON [BACKEND]
 app/api/ask/route.ts       → pregunta + contexto → respuesta     [BACKEND]
 lib/openai.ts              → cliente + system prompts + schema   [BACKEND]
 lib/readability.ts         → índice Fernández-Huerta             [MÉTRICA — Daniel]
@@ -34,9 +34,9 @@ Stack: Next.js 15 (App Router) + API de OpenAI (`gpt-4o`, visión, structured ou
 
 ### El contrato entre módulos (NO romper sin acordarlo)
 
-Frontend y backend solo se tocan a través de estos dos JSON. Mientras el contrato no cambie, cada quien trabaja libre en su módulo:
+Frontend y backend solo se tocan a través de estos dos endpoints. Mientras el contrato no cambie, cada quien trabaja libre en su módulo:
 
-**`POST /api/narrate`** — entrada: `{ imageBase64?, mediaType?, texto? }` — salida:
+**`POST /api/narrate`** — entrada preferida: `multipart/form-data` con el archivo en la clave `archivo`; para texto pegado: JSON `{ texto }`. Se mantienen los campos Base64 como compatibilidad. Salida:
 ```json
 {
   "tipoDocumento": "planilla de agua potable",

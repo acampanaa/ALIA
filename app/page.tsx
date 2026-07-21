@@ -56,17 +56,29 @@ export default function Home() {
     hablar(mensaje);
   }
 
-  async function procesar(payload: { imageBase64?: string; mediaType?: string; texto?: string }) {
+  async function procesar(payload: { archivo?: File; texto?: string }) {
     setEstado("procesando");
     setError(null);
     setRespuestaVoz(null);
     anunciar("Estoy leyendo tu documento. Dame unos segundos.");
 
     try {
+      let body: BodyInit;
+      let headers: HeadersInit | undefined;
+
+      if (payload.archivo) {
+        const formulario = new FormData();
+        formulario.append("archivo", payload.archivo);
+        body = formulario;
+      } else {
+        headers = { "Content-Type": "application/json" };
+        body = JSON.stringify({ texto: payload.texto });
+      }
+
       const respuesta = await fetch("/api/narrate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        headers,
+        body,
       });
       const data = (await respuesta.json()) as Resultado & { error?: string };
       if (!respuesta.ok) throw new Error(data.error ?? "No pude procesar el documento.");
@@ -93,25 +105,12 @@ export default function Home() {
     }
   }
 
-  function recibirFoto(archivo: File) {
-    if (!archivo.type.startsWith("image/")) {
-      mostrarError("El archivo debe ser una imagen.");
+  function recibirArchivo(archivo: File) {
+    if (archivo.size > 10 * 1024 * 1024) {
+      mostrarError("El archivo supera el límite de 10 MB.");
       return;
     }
-
-    const lector = new FileReader();
-    lector.onerror = () => mostrarError("No pude abrir la imagen. Elige otra e intenta nuevamente.");
-    lector.onload = () => {
-      const dataUrl = lector.result as string;
-      const [cabecera, base64] = dataUrl.split(",");
-      if (!base64) {
-        mostrarError("La imagen no se pudo preparar. Elige otra e intenta nuevamente.");
-        return;
-      }
-      const mediaType = cabecera.match(/data:(.*?);/)?.[1] ?? "image/jpeg";
-      procesar({ imageBase64: base64, mediaType });
-    };
-    lector.readAsDataURL(archivo);
+    procesar({ archivo });
   }
 
   async function responderPregunta(pregunta: string, esRapida = false) {
@@ -266,7 +265,7 @@ export default function Home() {
                     <h2>¿Cómo quieres cargar el documento?</h2>
                     <p>Elige una de estas dos opciones.</p>
                   </div>
-                  <BotonGigante onFoto={recibirFoto} onTexto={() => setMostrarTexto(true)} deshabilitado={false} />
+                  <BotonGigante onArchivo={recibirArchivo} onTexto={() => setMostrarTexto(true)} deshabilitado={false} />
                 </>
               ) : (
                 <form

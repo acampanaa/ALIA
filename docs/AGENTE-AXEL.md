@@ -74,7 +74,7 @@ lib/readability.ts     (Daniel — métrica ODS; tú solo la importas)
 
 ### `POST /api/narrate`
 
-**Input:** `{ imageBase64?: string, text?: string }`
+**Input:** archivo en multipart/form-data con clave archivo, o JSON con el campo texto. Límite: 10 MB.
 
 **Output (JSON estructurado):**
 ```json

@@ -109,17 +109,11 @@ El código actual es la fuente definitiva del contrato. No se deben cambiar esto
 
 ### `POST /api/narrate`
 
-Entrada:
+Entrada de archivo: formulario multipart con clave archivo. Acepta imagen, PDF, Word, PowerPoint, texto u hoja de cálculo, con máximo 10 MB.
 
-```json
-{
-  "imageBase64": "opcional",
-  "mediaType": "image/jpeg",
-  "texto": "opcional"
-}
-```
+Entrada de texto pegado: JSON con el campo texto.
 
-Debe enviarse una imagen o un texto. La respuesta vigente es:
+Debe enviarse un archivo o un texto. La respuesta vigente es:
 
 ```json
 {

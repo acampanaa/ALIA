@@ -3,17 +3,27 @@
 import { useEffect, useRef, useState } from "react";
 import Icono from "../components/Icono";
 
-const FORMATOS_ACEPTADOS = ".jpg,.jpeg,.png,.webp,.gif,image/jpeg,image/png,image/webp,image/gif";
-const TIPOS_ACEPTADOS = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
+const EXTENSIONES_ACEPTADAS = new Set([
+  ".jpg", ".jpeg", ".png", ".webp", ".gif",
+  ".pdf", ".doc", ".docx", ".rtf", ".odt",
+  ".ppt", ".pptx", ".txt", ".md", ".csv", ".xls", ".xlsx",
+]);
+const FORMATOS_ACEPTADOS = Array.from(EXTENSIONES_ACEPTADAS).join(",");
+const TAMANO_MAXIMO = 10 * 1024 * 1024;
+
+function extensionDe(nombre: string): string {
+  const punto = nombre.lastIndexOf(".");
+  return punto >= 0 ? nombre.slice(punto).toLowerCase() : "";
+}
 type VistaModal = "opciones" | "camara";
 type EstadoCamara = "inactiva" | "iniciando" | "lista" | "error";
 
 export default function BotonGigante({
-  onFoto,
+  onArchivo,
   onTexto,
   deshabilitado,
 }: {
-  onFoto: (archivo: File) => void;
+  onArchivo: (archivo: File) => void;
   onTexto: () => void;
   deshabilitado: boolean;
 }) {
@@ -130,7 +140,7 @@ export default function BotonGigante({
 
   function mensajeErrorCamara(error: unknown): string {
     if (!(error instanceof DOMException)) {
-      return "No pudimos iniciar la cámara. Puedes subir una imagen guardada.";
+      return "No pudimos iniciar la cámara. Puedes subir un archivo guardado.";
     }
     if (error.name === "NotAllowedError") {
       return "El permiso de cámara está bloqueado. Habilítalo en el navegador e intenta otra vez.";
@@ -219,7 +229,7 @@ export default function BotonGigante({
         }
         const archivo = new File([blob], `documento-${Date.now()}.jpg`, { type: "image/jpeg" });
         cerrarModal();
-        onFoto(archivo);
+        onArchivo(archivo);
       },
       "image/jpeg",
       0.9,
@@ -229,13 +239,17 @@ export default function BotonGigante({
   function seleccionarArchivo(archivo: File | undefined, input: HTMLInputElement) {
     input.value = "";
     if (!archivo) return;
-    if (!TIPOS_ACEPTADOS.has(archivo.type)) {
-      setErrorArchivo("Este formato no es compatible. Usa una imagen JPG, PNG, WEBP o GIF.");
+    if (!EXTENSIONES_ACEPTADAS.has(extensionDe(archivo.name))) {
+      setErrorArchivo("Este formato no es compatible. Usa una imagen, PDF, Word, PowerPoint, texto u hoja de cálculo.");
+      return;
+    }
+    if (archivo.size > TAMANO_MAXIMO) {
+      setErrorArchivo("El archivo supera el límite de 10 MB.");
       return;
     }
     setErrorArchivo(null);
     cerrarModal();
-    onFoto(archivo);
+    onArchivo(archivo);
   }
 
   return (
@@ -252,7 +266,7 @@ export default function BotonGigante({
           <span className="opcion-icono"><Icono nombre="camara" /></span>
           <span className="opcion-contenido">
             <strong>Fotografiar o subir documento</strong>
-            <small>Usa una cámara o elige una imagen</small>
+            <small>Usa una cámara o elige un archivo</small>
           </span>
         </button>
 
@@ -291,7 +305,7 @@ export default function BotonGigante({
             {vista === "opciones" ? (
               <>
                 <p id="descripcion-modal-documento" className="modal-descripcion">
-                  Usa una cámara disponible en tu dispositivo o elige una imagen guardada.
+                  Usa una cámara disponible en tu dispositivo o elige un archivo guardado.
                 </p>
 
                 <div className="modal-opciones">
@@ -303,8 +317,8 @@ export default function BotonGigante({
 
                   <button type="button" className="modal-opcion modal-opcion-secundaria" onClick={() => inputArchivo.current?.click()}>
                     <span><Icono nombre="subir" /></span>
-                    <strong>Subir una imagen</strong>
-                    <small>Elige un archivo guardado</small>
+                    <strong>Subir un archivo</strong>
+                    <small>Imagen, PDF, Word, texto y más</small>
                   </button>
                 </div>
 
@@ -323,8 +337,11 @@ export default function BotonGigante({
                 <section className="modal-formatos" aria-labelledby="titulo-formatos">
                   <h3 id="titulo-formatos">¿Qué puedes cargar?</h3>
                   <p><strong>Imágenes:</strong> JPG, JPEG, PNG, WEBP y GIF.</p>
-                  <p><strong>Documentos fotografiados:</strong> planillas, recetas, trámites, contratos, avisos y notificaciones.</p>
-                  <p><strong>Todavía no disponible:</strong> PDF, Word o Excel. Puedes pegar su texto desde la pantalla anterior.</p>
+                  <p><strong>Documentos:</strong> PDF, Word (DOC y DOCX), RTF y ODT.</p>
+                  <p><strong>Presentaciones y texto:</strong> PPT, PPTX, TXT y Markdown.</p>
+                  <p><strong>Hojas de cálculo:</strong> CSV, XLS y XLSX.</p>
+                  <p><strong>Tamaño máximo:</strong> 10 MB por archivo.</p>
+                  <p><strong>Consejo:</strong> convierte Word o PowerPoint a PDF para conservar sus gráficos e imágenes.</p>
                   <p><strong>Para usar una cámara:</strong> permite su acceso cuando el navegador lo solicite. Fuera de localhost se necesita HTTPS.</p>
                 </section>
               </>

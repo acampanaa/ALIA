@@ -67,7 +67,7 @@ El contrato entre frontend y backend está en [`docs/01-proyecto/arquitectura-y-
 
 ```
 app/page.tsx                 → pantalla única audio-first          [Andrea]
-app/api/narrate/route.ts     → foto/texto → IA visión → JSON       [Axel]
+app/api/narrate/route.ts     → archivo/texto → IA multimodal → JSON [Axel]
 app/api/ask/route.ts         → pregunta + contexto → respuesta     [Axel]
 lib/openai.ts                → prompts + schema                     [Axel]
 lib/readability.ts           → índice Fernández-Huerta (ODS)        [Daniel]
