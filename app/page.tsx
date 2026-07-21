@@ -20,6 +20,16 @@ interface Resultado {
 type Estado = "inicio" | "procesando" | "listo" | "escuchando" | "respondiendo";
 
 const pasos = ["Documento", "Explicación", "Preguntas"];
+const CLAVE_MODO_ACOMPANAMIENTO = "alia-modo-acompanamiento";
+const CLAVE_VELOCIDAD_VOZ = "alia-velocidad-voz";
+
+function normalizarOrden(orden: string) {
+  return orden
+    .toLocaleLowerCase("es")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+}
 
 export default function Home() {
   const [estado, setEstado] = useState<Estado>("inicio");
@@ -30,9 +40,38 @@ export default function Home() {
   const [mostrarTexto, setMostrarTexto] = useState(false);
   const [textoPegado, setTextoPegado] = useState("");
   const [altaVisibilidad, setAltaVisibilidad] = useState(false);
+  const [modoAcompanamiento, setModoAcompanamiento] = useState(true);
+  const [velocidadVoz, setVelocidadVoz] = useState(0.95);
+  const [escuchandoComando, setEscuchandoComando] = useState(false);
   const campoTexto = useRef<HTMLTextAreaElement>(null);
   const resultadoEnPantalla = useRef<HTMLDivElement>(null);
   const alertaError = useRef<HTMLDivElement>(null);
+  const ultimoMensajeVoz = useRef(
+    "Puedes fotografiar o subir un documento. También puedes pegar su texto.",
+  );
+  const indicePasoVoz = useRef(0);
+
+  useEffect(() => {
+    const modoGuardado = window.localStorage.getItem(CLAVE_MODO_ACOMPANAMIENTO);
+    const velocidadGuardada = Number(window.localStorage.getItem(CLAVE_VELOCIDAD_VOZ));
+
+    if (modoGuardado !== null) setModoAcompanamiento(modoGuardado === "true");
+    if ([0.8, 0.95, 1.15].includes(velocidadGuardada)) {
+      setVelocidadVoz(velocidadGuardada);
+    }
+  }, []);
+
+  useEffect(() => {
+    function avisarVozNoDisponible() {
+      const mensaje =
+        "Este dispositivo no tiene instalada una voz en español. Instala una voz en español en los ajustes de idioma para usar la guía. ALIA no usará una voz en inglés.";
+      setError(mensaje);
+      setAnuncio(mensaje);
+    }
+
+    window.addEventListener("alia:voz-no-disponible", avisarVozNoDisponible);
+    return () => window.removeEventListener("alia:voz-no-disponible", avisarVozNoDisponible);
+  }, []);
 
   useEffect(() => {
     if (mostrarTexto) campoTexto.current?.focus();
@@ -46,15 +85,26 @@ export default function Home() {
     if (error) alertaError.current?.focus();
   }, [error]);
 
+  function decir(mensaje: string, velocidad = velocidadVoz) {
+    ultimoMensajeVoz.current = mensaje;
+    hablar(mensaje, { velocidad });
+  }
+
   function anunciar(mensaje: string, conVoz = true) {
     setAnuncio(mensaje);
-    if (conVoz) hablar(mensaje);
+    if (conVoz && modoAcompanamiento) decir(mensaje);
   }
 
   function mostrarError(mensaje: string) {
     setError(mensaje);
-    setAnuncio(mensaje);
-    hablar(mensaje);
+    anunciar(mensaje);
+  }
+
+  function narracionDelResultado(resultadoActual: Resultado) {
+    const pasosHablados = resultadoActual.proximosPasos.length > 0
+      ? " Lo importante: " + resultadoActual.proximosPasos.join(" ")
+      : "";
+    return resultadoActual.tipoDocumento + ". " + resultadoActual.resumenClaro + pasosHablados;
   }
 
   async function procesar(payload: { archivo?: File; texto?: string }) {
@@ -94,15 +144,13 @@ export default function Home() {
         ? data.preguntasSugeridas.filter((pregunta): pregunta is string => typeof pregunta === "string")
         : [];
       const resultadoCompleto = { ...data, proximosPasos, preguntasSugeridas };
-      const pasosHablados = proximosPasos.length > 0
-        ? " Lo importante: " + proximosPasos.join(" ")
-        : "";
-      const narracionCompleta = data.tipoDocumento + ". " + data.resumenClaro + pasosHablados;
+      const narracionCompleta = narracionDelResultado(resultadoCompleto);
 
       setResultado(resultadoCompleto);
+      indicePasoVoz.current = 0;
       setEstado("listo");
       setAnuncio("Documento listo. " + narracionCompleta);
-      hablar(narracionCompleta);
+      if (modoAcompanamiento) decir(narracionCompleta);
     } catch (err) {
       setEstado("inicio");
       const mensaje = err instanceof Error ? err.message : "Ocurrió un error inesperado.";
@@ -118,7 +166,11 @@ export default function Home() {
     procesar({ archivo });
   }
 
-  async function responderPregunta(pregunta: string, esRapida = false) {
+  async function responderPregunta(
+    pregunta: string,
+    esRapida = false,
+    respuestaHablada = false,
+  ) {
     if (!resultado) return;
     setEstado("respondiendo");
     setError(null);
@@ -139,7 +191,7 @@ export default function Home() {
       setRespuestaVoz(data.respuesta);
       setEstado("listo");
       setAnuncio(data.respuesta);
-      hablar(data.respuesta);
+      if (modoAcompanamiento || respuestaHablada) decir(data.respuesta);
     } catch (err) {
       setEstado("listo");
       const mensaje = err instanceof Error ? err.message : "No pude responder.";
@@ -166,7 +218,7 @@ export default function Home() {
         mostrarError("No escuché una pregunta. Acércate al micrófono e intenta otra vez.");
         return;
       }
-      await responderPregunta(pregunta);
+      await responderPregunta(pregunta, false, true);
     } catch (err) {
       setEstado("listo");
       const mensaje = err instanceof Error ? err.message : "No pude usar el micrófono.";
@@ -185,6 +237,133 @@ export default function Home() {
     anunciar("Listo. Puedes fotografiar otro documento.");
   }
 
+  function guiaActual() {
+    if (estado === "procesando") {
+      return "Estoy leyendo tu documento. Espera unos segundos.";
+    }
+    if (resultado) {
+      return "El documento está listo. Puedes decir: leer resumen, siguiente paso, repetir o detener.";
+    }
+    if (mostrarTexto) {
+      return "Pega el contenido en el campo de texto y toca explicar este texto.";
+    }
+    return "Puedes fotografiar o subir un documento. También puedes pegar su texto.";
+  }
+
+  function alternarModoAcompanamiento() {
+    const siguienteEstado = !modoAcompanamiento;
+    setModoAcompanamiento(siguienteEstado);
+    window.localStorage.setItem(CLAVE_MODO_ACOMPANAMIENTO, String(siguienteEstado));
+
+    if (!siguienteEstado) {
+      callar();
+      setAnuncio("Modo acompañamiento desactivado. Los lectores de pantalla seguirán recibiendo los anuncios.");
+      return;
+    }
+
+    const mensaje = "Modo acompañamiento activado. " + guiaActual();
+    setAnuncio(mensaje);
+    decir(mensaje);
+  }
+
+  function cambiarVelocidad(nuevaVelocidad: number) {
+    setVelocidadVoz(nuevaVelocidad);
+    window.localStorage.setItem(CLAVE_VELOCIDAD_VOZ, String(nuevaVelocidad));
+    const mensaje = nuevaVelocidad < 0.9
+      ? "Velocidad lenta."
+      : nuevaVelocidad > 1
+        ? "Velocidad rápida."
+        : "Velocidad normal.";
+    setAnuncio(mensaje);
+    if (modoAcompanamiento) decir(mensaje, nuevaVelocidad);
+  }
+
+  function repetirUltimoMensaje() {
+    callar();
+    decir(ultimoMensajeVoz.current);
+  }
+
+  function ejecutarComando(orden: string) {
+    const comando = normalizarOrden(orden);
+
+    if (comando.includes("detener") || comando.includes("parar") || comando.includes("callar")) {
+      callar();
+      setAnuncio("Narración detenida.");
+      return;
+    }
+
+    if (comando.includes("repetir") || comando.includes("otra vez")) {
+      repetirUltimoMensaje();
+      return;
+    }
+
+    if (comando.includes("resumen") || comando.includes("explicacion")) {
+      if (!resultado) {
+        decir("Todavía no hay un documento listo. Primero fotografía, sube o pega un documento.");
+        return;
+      }
+      decir(narracionDelResultado(resultado));
+      return;
+    }
+
+    if (comando.includes("siguiente") || comando.includes("proximo paso")) {
+      if (!resultado?.proximosPasos.length) {
+        decir("Este documento no tiene pasos pendientes.");
+        return;
+      }
+
+      const indice = Math.min(indicePasoVoz.current, resultado.proximosPasos.length - 1);
+      const esUltimo = indice === resultado.proximosPasos.length - 1;
+      decir(
+        "Paso " + (indice + 1) + " de " + resultado.proximosPasos.length + ". "
+        + resultado.proximosPasos[indice]
+        + (esUltimo ? " Este es el último paso." : ""),
+      );
+      if (!esUltimo) indicePasoVoz.current = indice + 1;
+      return;
+    }
+
+    if (comando.includes("nuevo documento") || comando.includes("otro documento")) {
+      reiniciar();
+      return;
+    }
+
+    if (comando.includes("ayuda") || comando.includes("guia")) {
+      decir(guiaActual());
+      return;
+    }
+
+    decir(
+      "No reconocí esa orden. Puedes decir: leer resumen, siguiente paso, repetir, detener o nuevo documento.",
+    );
+  }
+
+  async function escucharComando() {
+    if (!soportaEscucha()) {
+      mostrarError("Este navegador no permite órdenes por voz. Puedes usar los botones de acompañamiento.");
+      return;
+    }
+
+    callar();
+    setError(null);
+    setEscuchandoComando(true);
+    setAnuncio("Te escucho. Di una orden.");
+
+    try {
+      const orden = await escuchar();
+      setEscuchandoComando(false);
+      if (!orden) {
+        mostrarError("No escuché una orden. Acércate al micrófono e intenta nuevamente.");
+        return;
+      }
+      ejecutarComando(orden);
+    } catch (err) {
+      setEscuchandoComando(false);
+      const mensaje = err instanceof Error ? err.message : "No pude usar el micrófono.";
+      mostrarError(mensaje + " También puedes usar los botones.");
+    }
+  }
+
   const pasoActual = estado === "inicio" ? 1 : estado === "procesando" ? 2 : 3;
   const estadoPregunta =
     estado === "escuchando" ? "escuchando" : estado === "respondiendo" ? "respondiendo" : "inactivo";
@@ -201,11 +380,13 @@ export default function Home() {
         <div className="utilidades" aria-label="Opciones de accesibilidad">
           <button
             type="button"
-            className="boton-utilidad"
-            onClick={() => hablar("Fotografía un documento o pega su texto. ALIA lo explicará y podrás hacer preguntas.")}
+            className={"boton-utilidad " + (modoAcompanamiento ? "activa" : "")}
+            aria-pressed={modoAcompanamiento}
+            aria-controls="modo-acompanamiento"
+            onClick={alternarModoAcompanamiento}
           >
             <Icono nombre="volumen" />
-            <span>Escuchar guía</span>
+            <span>{modoAcompanamiento ? "Apagar voz de ALIA" : "Activar voz de ALIA"}</span>
           </button>
           <button
             type="button"
@@ -239,6 +420,89 @@ export default function Home() {
             })}
           </ol>
         </nav>
+
+        <section
+          id="modo-acompanamiento"
+          className={"acompanamiento " + (modoAcompanamiento ? "acompanamiento-activo" : "")}
+          aria-labelledby="titulo-acompanamiento"
+        >
+          <div className="acompanamiento-informacion">
+            <span className="acompanamiento-estado">
+              {modoAcompanamiento ? "Voz de ALIA activa" : "Voz de ALIA apagada"}
+            </span>
+            <h2 id="titulo-acompanamiento">Modo acompañamiento</h2>
+            <p>
+              {modoAcompanamiento
+                ? "ALIA te guía y permite controlar el documento con la voz."
+                : "Actívalo si quieres recibir indicaciones habladas. Si usas TalkBack, puedes dejarlo apagado."}
+            </p>
+          </div>
+
+          <div className="controles-acompanamiento">
+            <button
+              type="button"
+              className={"boton " + (modoAcompanamiento ? "boton-discreto" : "boton-primario")}
+              aria-pressed={modoAcompanamiento}
+              onClick={alternarModoAcompanamiento}
+            >
+              <Icono nombre="volumen" />
+              {modoAcompanamiento ? "Apagar voz" : "Activar acompañamiento"}
+            </button>
+
+            <label className="control-velocidad" htmlFor="velocidad-voz">
+              <span>Velocidad</span>
+              <select
+                id="velocidad-voz"
+                value={velocidadVoz}
+                disabled={!modoAcompanamiento}
+                onChange={(event) => cambiarVelocidad(Number(event.target.value))}
+              >
+                <option value={0.8}>Lenta</option>
+                <option value={0.95}>Normal</option>
+                <option value={1.15}>Rápida</option>
+              </select>
+            </label>
+
+            <button
+              type="button"
+              className={"boton boton-primario boton-voz " + (escuchandoComando ? "esta-escuchando" : "")}
+              disabled={!modoAcompanamiento || escuchandoComando || estado === "escuchando"}
+              aria-pressed={escuchandoComando}
+              onClick={escucharComando}
+            >
+              <Icono nombre="microfono" />
+              {escuchandoComando ? "Te escucho. Habla ahora" : "Dar una orden"}
+            </button>
+
+            <button
+              type="button"
+              className="boton boton-secundario"
+              disabled={!modoAcompanamiento || escuchandoComando}
+              onClick={repetirUltimoMensaje}
+            >
+              <Icono nombre="volumen" />
+              Repetir
+            </button>
+
+            <button
+              type="button"
+              className="boton boton-discreto"
+              disabled={!modoAcompanamiento}
+              onClick={() => {
+                callar();
+                setAnuncio("Narración detenida.");
+              }}
+            >
+              Detener
+            </button>
+          </div>
+
+          {modoAcompanamiento && (
+            <p className="comandos-disponibles">
+              Puedes decir: “leer resumen”, “siguiente paso”, “repetir”, “detener” o “nuevo documento”.
+            </p>
+          )}
+        </section>
 
         {error && (
           <div ref={alertaError} tabIndex={-1} className="aviso aviso-error" role="alert">
@@ -333,12 +597,9 @@ export default function Home() {
               legibilidad={resultado.legibilidad}
               estadoPregunta={estadoPregunta}
               respuestaVoz={respuestaVoz}
-              onEscuchar={() => {
-                const pasosHablados = resultado.proximosPasos.length > 0
-                  ? " Lo importante: " + resultado.proximosPasos.join(" ")
-                  : "";
-                hablar(resultado.tipoDocumento + ". " + resultado.resumenClaro + pasosHablados);
-              }}
+              narracionAutomatica={modoAcompanamiento}
+              velocidadVoz={velocidadVoz}
+              onEscuchar={() => decir(narracionDelResultado(resultado))}
               onPreguntar={preguntarPorVoz}
               onPreguntaTexto={responderPregunta}
               onPreguntaRapida={(pregunta) => responderPregunta(pregunta, true)}

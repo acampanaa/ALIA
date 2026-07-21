@@ -20,6 +20,8 @@ export default function ResultadoDocumento({
   legibilidad,
   estadoPregunta,
   respuestaVoz,
+  narracionAutomatica,
+  velocidadVoz,
   onEscuchar,
   onPreguntar,
   onPreguntaTexto,
@@ -35,6 +37,8 @@ export default function ResultadoDocumento({
   legibilidad: Legibilidad | null;
   estadoPregunta: EstadoPregunta;
   respuestaVoz: string | null;
+  narracionAutomatica: boolean;
+  velocidadVoz: number;
   onEscuchar: () => void;
   onPreguntar: () => void;
   onPreguntaTexto: (pregunta: string) => void;
@@ -70,14 +74,22 @@ export default function ResultadoDocumento({
     tituloPaso.current?.focus();
     callar();
     const prefijo = indicePaso === 0 ? "Modo enfoque. " : "";
-    hablar(prefijo + "Paso " + (indicePaso + 1) + " de " + proximosPasos.length + ". " + paso);
-  }, [modoEnfoque, indicePaso, proximosPasos]);
+    if (narracionAutomatica) {
+      hablar(
+        prefijo + "Paso " + (indicePaso + 1) + " de " + proximosPasos.length + ". " + paso,
+        { velocidad: velocidadVoz },
+      );
+    }
+  }, [modoEnfoque, indicePaso, proximosPasos, narracionAutomatica, velocidadVoz]);
 
   function escucharPaso() {
     const paso = proximosPasos[indicePaso];
     if (!paso) return;
     callar();
-    hablar("Paso " + (indicePaso + 1) + " de " + proximosPasos.length + ". " + paso);
+    hablar(
+      "Paso " + (indicePaso + 1) + " de " + proximosPasos.length + ". " + paso,
+      { velocidad: velocidadVoz },
+    );
   }
 
   function salirModoEnfoque() {
@@ -85,7 +97,9 @@ export default function ResultadoDocumento({
     regresoDesdeEnfoque.current = true;
     setModoEnfoque(false);
     setIndicePaso(0);
-    hablar("Volviste al resumen del documento.");
+    if (narracionAutomatica) {
+      hablar("Volviste al resumen del documento.", { velocidad: velocidadVoz });
+    }
   }
 
   function enviarPregunta(event: FormEvent<HTMLFormElement>) {
