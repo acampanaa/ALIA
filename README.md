@@ -41,6 +41,7 @@ Abrir http://localhost:3000 en **Chrome** (el reconocimiento de voz solo funcion
 | Archivo | Para qué |
 |---|---|
 | [`LEEME-PRIMERO.md`](./LEEME-PRIMERO.md) | **Empieza aquí** — onboarding del equipo y agentes IA |
+| [`docs/01-proyecto/resumen-y-flujo.md`](./docs/01-proyecto/resumen-y-flujo.md) | Resumen consolidado, reparto de agentes y flujo del sistema |
 | [`docs/01-proyecto/objetivo-y-funcionalidades.md`](./docs/01-proyecto/objetivo-y-funcionalidades.md) | Qué construimos y criterios de "hecho" |
 | [`docs/01-proyecto/arquitectura-y-modulos.md`](./docs/01-proyecto/arquitectura-y-modulos.md) | Dueños por archivo + contrato JSON (no romper sin avisar) |
 | [`docs/02-equipo/andrea-frontend.md`](./docs/02-equipo/andrea-frontend.md) | Plan hora a hora — Andrea (frontend) |

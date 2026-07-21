@@ -3,7 +3,7 @@
 > **ALIA:** Accesibilidad, Lenguaje, Inclusión y Autonomía  
 > **Lema:** *Tecnología que se adapta a ti.*
 
-Este documento reúne el contexto operativo de ALIA, el reparto de responsabilidades del equipo y el flujo vigente del sistema. Para instalar y ejecutar la aplicación, consulta [`README.md`](README.md).
+Este documento reúne el contexto operativo de ALIA, el reparto de responsabilidades del equipo y el flujo vigente del sistema. Para instalar y ejecutar la aplicación, consulta [`README.md`](../../README.md).
 
 ## 1. Qué es ALIA
 

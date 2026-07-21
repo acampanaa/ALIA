@@ -41,10 +41,11 @@
 |---|---|---|
 | 1 | `LEEME-PRIMERO.md` | Este archivo |
 | 2 | `README.md` | Qué es ALIA + cómo correr |
-| 3 | `docs/01-proyecto/` | Objetivo, funcionalidades, arquitectura |
-| 4 | `docs/02-equipo/` | Cronograma 6 h por persona |
-| 5 | `docs/03-pitch/guion-pitch.md` | Guión presentación + ODS |
-| 6 | `docs/AGENTE-*.md` | Tareas por persona / agente IA |
+| 3 | `docs/01-proyecto/resumen-y-flujo.md` | Contexto consolidado, agentes y flujo del sistema |
+| 4 | `docs/01-proyecto/` | Objetivo, funcionalidades, arquitectura |
+| 5 | `docs/02-equipo/` | Cronograma 6 h por persona |
+| 6 | `docs/03-pitch/guion-pitch.md` | Guión presentación + ODS |
+| 7 | `docs/AGENTE-*.md` | Tareas por persona / agente IA |
 
 ---
 
