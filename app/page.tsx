@@ -105,12 +105,12 @@ export default function Home() {
     lector.readAsDataURL(archivo);
   }
 
-  async function responderPregunta(pregunta: string) {
+  async function responderPregunta(pregunta: string, esRapida = false) {
     if (!resultado) return;
     setEstado("respondiendo");
     setError(null);
     setRespuestaVoz(null);
-    anunciar("Estoy buscando la respuesta.");
+    anunciar(esRapida ? "Pregunta seleccionada. Buscando la respuesta." : "Estoy buscando la respuesta.");
 
     try {
       const contexto = `${resultado.textoCompleto}\n\nResumen: ${resultado.resumenClaro}`;
@@ -321,6 +321,7 @@ export default function Home() {
               onEscuchar={() => hablar(`${resultado.tipoDocumento}. ${resultado.resumenClaro}`)}
               onPreguntar={preguntarPorVoz}
               onPreguntaTexto={responderPregunta}
+              onPreguntaRapida={(pregunta) => responderPregunta(pregunta, true)}
               onNuevo={reiniciar}
             />
           </div>

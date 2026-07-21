@@ -370,6 +370,17 @@ textarea::placeholder, input::placeholder { color: var(--texto-secundario); opac
 .acciones-principales { display: grid; gap: 12px; margin: 20px 0 12px; }
 .boton-voz.esta-escuchando { background: var(--error); border-color: var(--error); color: #fff; }
 .formulario-pregunta { margin-top: 18px; padding: 18px; border-radius: 16px; background: var(--superficie-suave); }
+.preguntas-rapidas { margin-top: 18px; }
+.preguntas-rapidas h3 { margin: 0 0 10px; font-size: 1rem; }
+.preguntas-rapidas-lista { display: grid; gap: 10px; }
+.pregunta-rapida {
+  min-height: 64px;
+  justify-content: flex-start;
+  border: 2px solid var(--primario);
+  background: var(--superficie);
+  color: var(--primario);
+  text-align: left;
+}
 .pregunta-en-linea { display: grid; gap: 10px; }
 .legibilidad { padding: 20px; border-radius: 16px; background: var(--fondo); }
 .comparacion-legibilidad { display: grid; gap: 10px; margin: 18px 0 0; }
@@ -386,6 +397,7 @@ textarea::placeholder, input::placeholder { color: var(--texto-secundario); opac
   .contenido-principal { padding-top: 28px; }
   .inicio { grid-template-columns: minmax(0, 1fr) minmax(380px, 0.82fr); gap: clamp(36px, 6vw, 76px); }
   .datos-clave, .comparacion-legibilidad, .acciones-principales { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .preguntas-rapidas-lista { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .pregunta-en-linea { grid-template-columns: minmax(0, 1fr) auto; }
   .pregunta-en-linea .boton { min-width: 150px; }
 }

@@ -20,6 +20,7 @@ export default function ResultadoDocumento({
   onEscuchar,
   onPreguntar,
   onPreguntaTexto,
+  onPreguntaRapida,
   onNuevo,
 }: {
   tipoDocumento: string;
@@ -32,6 +33,7 @@ export default function ResultadoDocumento({
   onEscuchar: () => void;
   onPreguntar: () => void;
   onPreguntaTexto: (pregunta: string) => void;
+  onPreguntaRapida: (pregunta: string) => void;
   onNuevo: () => void;
 }) {
   const [mostrarPregunta, setMostrarPregunta] = useState(false);
@@ -102,6 +104,23 @@ export default function ResultadoDocumento({
           <h2 id="titulo-acciones">¿Quieres saber algo más?</h2>
           <p>Pregunta por voz o escribe tu pregunta.</p>
         </div>
+
+        <section className="preguntas-rapidas" aria-labelledby="titulo-preguntas-rapidas" aria-busy={ocupado}>
+          <h3 id="titulo-preguntas-rapidas">Preguntas rápidas</h3>
+          <div className="preguntas-rapidas-lista">
+            {["¿Cuánto tengo que pagar?", "¿Hasta cuándo tengo plazo?", "¿Dónde debo pagar o ir?"].map((preguntaRapida) => (
+              <button
+                key={preguntaRapida}
+                type="button"
+                className="boton pregunta-rapida"
+                onClick={() => onPreguntaRapida(preguntaRapida)}
+                disabled={ocupado}
+              >
+                {preguntaRapida}
+              </button>
+            ))}
+          </div>
+        </section>
 
         <div className="acciones-principales">
           <IndicadorVoz estado={estadoPregunta} onPreguntar={onPreguntar} deshabilitado={ocupado} />
