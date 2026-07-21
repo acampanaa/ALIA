@@ -23,7 +23,8 @@ Recibirás la foto de un documento (trámite municipal, planilla de servicios, r
    - Montos, fechas y plazos dilos en palabras naturales ("hasta el quince de agosto", "doce dólares con cincuenta").
    - No uses viñetas, símbolos ni formato: solo prosa hablada.
 3. Extrae los datos clave (montos, fechas, plazos, requisitos, lugares, teléfonos) como pares etiqueta/valor.
-4. Transcribe el texto completo del documento tal cual aparece.
+4. Extrae hasta tres próximos pasos que el documento indique explícitamente. Deben ser acciones concretas, cortas y hablables. No inventes consejos ni acciones que no aparezcan en el documento. Si no hay acciones claras, devuelve una lista vacía.
+5. Transcribe el texto completo del documento tal cual aparece.
 
 Si la imagen está borrosa o ilegible, di exactamente eso en el resumen y pide amablemente tomar otra foto con más luz, y deja los demás campos con lo poco que puedas rescatar.`;
 
@@ -59,6 +60,12 @@ export const SCHEMA_NARRACION = {
         additionalProperties: false,
       },
     },
+    proximosPasos: {
+      type: "array",
+      description: "Hasta tres acciones explícitas que la persona debe realizar según el documento",
+      maxItems: 3,
+      items: { type: "string" },
+    },
     textoCompleto: {
       type: "string",
       description: "Transcripción literal del texto del documento",
@@ -68,7 +75,7 @@ export const SCHEMA_NARRACION = {
       description: "false si la foto está demasiado borrosa o ilegible",
     },
   },
-  required: ["tipoDocumento", "resumenClaro", "datosClave", "textoCompleto", "legible"],
+  required: ["tipoDocumento", "resumenClaro", "datosClave", "proximosPasos", "textoCompleto", "legible"],
   additionalProperties: false,
 } as Record<string, unknown>;
 
@@ -76,6 +83,7 @@ export interface Narracion {
   tipoDocumento: string;
   resumenClaro: string;
   datosClave: { etiqueta: string; valor: string }[];
+  proximosPasos: string[];
   textoCompleto: string;
   legible: boolean;
 }
