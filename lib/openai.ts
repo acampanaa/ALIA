@@ -28,7 +28,8 @@ Recibirás un documento como imagen, PDF, archivo de oficina o texto (trámite m
    - Teléfonos, códigos, montos, cantidades y períodos: conserva dígitos, separadores y símbolos tal como aparecen (ejemplos: 0988 197 776, $12,50, 2026-01, 3).
    - Solo el resumenClaro y proximosPasos deben usar lenguaje natural pensado para voz.
 4. Extrae hasta tres próximos pasos que el documento indique explícitamente. Deben ser acciones concretas, cortas y hablables. No inventes consejos ni acciones que no aparezcan en el documento. Si no hay acciones claras, devuelve una lista vacía.
-5. Transcribe el texto completo del documento tal cual aparece.
+5. Sugiere hasta tres preguntas rápidas útiles y específicas para ESTE documento. Deben poder responderse solo con sus datos: por ejemplo, sobre una materia, fecha, requisito, monto, horario, lugar o contacto que realmente conste. No uses preguntas genéricas ni sugieras una pregunta si el dato no aparece. Si no hay preguntas útiles, devuelve una lista vacía.
+6. Transcribe el texto completo del documento tal cual aparece.
 
 Si el contenido está borroso, dañado o ilegible, dilo exactamente en el resumen. Si es una foto, pide tomar otra con más luz. Deja los demás campos con lo poco que puedas rescatar.`;
 
@@ -71,6 +72,12 @@ export const SCHEMA_NARRACION = {
       maxItems: 3,
       items: { type: "string" },
     },
+    preguntasSugeridas: {
+      type: "array",
+      description: "Hasta tres preguntas específicas y respondibles con este documento",
+      maxItems: 3,
+      items: { type: "string" },
+    },
     textoCompleto: {
       type: "string",
       description: "Transcripción literal del texto del documento",
@@ -80,7 +87,7 @@ export const SCHEMA_NARRACION = {
       description: "false si la foto está demasiado borrosa o ilegible",
     },
   },
-  required: ["tipoDocumento", "resumenClaro", "datosClave", "proximosPasos", "textoCompleto", "legible"],
+  required: ["tipoDocumento", "resumenClaro", "datosClave", "proximosPasos", "preguntasSugeridas", "textoCompleto", "legible"],
   additionalProperties: false,
 } as Record<string, unknown>;
 
@@ -89,6 +96,7 @@ export interface Narracion {
   resumenClaro: string;
   datosClave: { etiqueta: string; valor: string }[];
   proximosPasos: string[];
+  preguntasSugeridas: string[];
   textoCompleto: string;
   legible: boolean;
 }

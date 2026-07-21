@@ -11,6 +11,7 @@ interface Resultado {
   resumenClaro: string;
   datosClave: { etiqueta: string; valor: string }[];
   proximosPasos: string[];
+  preguntasSugeridas: string[];
   textoCompleto: string;
   legible: boolean;
   legibilidad: Legibilidad | null;
@@ -89,7 +90,10 @@ export default function Home() {
       const proximosPasos = Array.isArray(data.proximosPasos)
         ? data.proximosPasos.filter((paso): paso is string => typeof paso === "string")
         : [];
-      const resultadoCompleto = { ...data, proximosPasos };
+      const preguntasSugeridas = Array.isArray(data.preguntasSugeridas)
+        ? data.preguntasSugeridas.filter((pregunta): pregunta is string => typeof pregunta === "string")
+        : [];
+      const resultadoCompleto = { ...data, proximosPasos, preguntasSugeridas };
       const pasosHablados = proximosPasos.length > 0
         ? " Lo importante: " + proximosPasos.join(" ")
         : "";
@@ -324,6 +328,7 @@ export default function Home() {
               resumenClaro={resultado.resumenClaro}
               datosClave={resultado.datosClave}
               proximosPasos={resultado.proximosPasos}
+              preguntasSugeridas={resultado.preguntasSugeridas}
               legible={resultado.legible}
               legibilidad={resultado.legibilidad}
               estadoPregunta={estadoPregunta}

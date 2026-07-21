@@ -15,6 +15,7 @@ export default function ResultadoDocumento({
   resumenClaro,
   datosClave,
   proximosPasos,
+  preguntasSugeridas,
   legible,
   legibilidad,
   estadoPregunta,
@@ -29,6 +30,7 @@ export default function ResultadoDocumento({
   resumenClaro: string;
   datosClave: { etiqueta: string; valor: string }[];
   proximosPasos: string[];
+  preguntasSugeridas: string[];
   legible: boolean;
   legibilidad: Legibilidad | null;
   estadoPregunta: EstadoPregunta;
@@ -210,12 +212,13 @@ export default function ResultadoDocumento({
           <p>Pregunta por voz o escribe tu pregunta.</p>
         </div>
 
-        <section className="preguntas-rapidas" aria-labelledby="titulo-preguntas-rapidas" aria-busy={ocupado}>
-          <h3 id="titulo-preguntas-rapidas">Preguntas rápidas</h3>
-          <div className="preguntas-rapidas-lista">
-            {["¿Cuánto tengo que pagar?", "¿Hasta cuándo tengo plazo?", "¿Dónde debo pagar o ir?"].map((preguntaRapida) => (
+        {preguntasSugeridas.length > 0 && (
+          <section className="preguntas-rapidas" aria-labelledby="titulo-preguntas-rapidas" aria-busy={ocupado}>
+            <h3 id="titulo-preguntas-rapidas">Preguntas sobre este documento</h3>
+            <div className="preguntas-rapidas-lista">
+              {preguntasSugeridas.map((preguntaRapida, indice) => (
               <button
-                key={preguntaRapida}
+                key={preguntaRapida + "-" + indice}
                 type="button"
                 className="boton pregunta-rapida"
                 onClick={() => onPreguntaRapida(preguntaRapida)}
@@ -224,8 +227,9 @@ export default function ResultadoDocumento({
                 {preguntaRapida}
               </button>
             ))}
-          </div>
-        </section>
+            </div>
+          </section>
+        )}
 
         <div className="acciones-principales">
           <IndicadorVoz estado={estadoPregunta} onPreguntar={onPreguntar} deshabilitado={ocupado} />
