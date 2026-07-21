@@ -93,11 +93,12 @@ export default function Home() {
       const pasosHablados = proximosPasos.length > 0
         ? " Lo importante: " + proximosPasos.join(" ")
         : "";
+      const narracionCompleta = data.tipoDocumento + ". " + data.resumenClaro + pasosHablados;
 
       setResultado(resultadoCompleto);
       setEstado("listo");
-      setAnuncio("Documento listo.");
-      hablar(data.tipoDocumento + ". " + data.resumenClaro + pasosHablados);
+      setAnuncio("Documento listo. " + narracionCompleta);
+      hablar(narracionCompleta);
     } catch (err) {
       setEstado("inicio");
       const mensaje = err instanceof Error ? err.message : "Ocurrió un error inesperado.";
@@ -215,7 +216,7 @@ export default function Home() {
       </header>
 
       <main id="contenido-principal" className="contenido-principal">
-        <p className="sr-only" aria-live="polite" role="status">{anuncio}</p>
+        <p className="sr-only" aria-live="polite" aria-atomic="true" role="status">{anuncio}</p>
 
         <nav className="progreso" aria-label="Progreso del documento">
           <ol>
