@@ -38,16 +38,15 @@ Abrir http://localhost:3000 en **Chrome** (el reconocimiento de voz solo funcion
 
 ## Documentos del proyecto
 
-```
-docs/
-├── 01-proyecto/   → qué construimos y cómo nos repartimos sin chocar
-│   ├── objetivo-y-funcionalidades.md
-│   └── arquitectura-y-modulos.md      (dueños por archivo + contrato JSON)
-├── 02-equipo/     → plan hora a hora de cada persona
-│   ├── andrea-frontend.md
-│   ├── axel-backend.md
-│   └── persona-3-pitch-qa.md          (si son 2, aquí dice quién absorbe qué)
-└── 03-pitch/      → todo lo que ven los jueces
-    ├── guion-pitch.md
-    └── idea-completa.md
-```
+| Archivo | Para qué |
+|---|---|
+| [`LEEME-PRIMERO.md`](./LEEME-PRIMERO.md) | **Empieza aquí** — onboarding del equipo y agentes IA |
+| [`docs/01-proyecto/objetivo-y-funcionalidades.md`](./docs/01-proyecto/objetivo-y-funcionalidades.md) | Qué construimos y criterios de "hecho" |
+| [`docs/01-proyecto/arquitectura-y-modulos.md`](./docs/01-proyecto/arquitectura-y-modulos.md) | Dueños por archivo + contrato JSON (no romper sin avisar) |
+| [`docs/02-equipo/andrea-frontend.md`](./docs/02-equipo/andrea-frontend.md) | Plan hora a hora — Andrea (frontend) |
+| [`docs/02-equipo/axel-backend.md`](./docs/02-equipo/axel-backend.md) | Plan hora a hora — Axel (backend/IA) |
+| [`docs/02-equipo/persona-3-pitch-qa.md`](./docs/02-equipo/persona-3-pitch-qa.md) | Plan hora a hora — Daniel (QA, pitch, código de apoyo) |
+| [`docs/03-pitch/guion-pitch.md`](./docs/03-pitch/guion-pitch.md) | Guión del pitch y evidencia ODS |
+| [`docs/AGENTE-AXEL.md`](./docs/AGENTE-AXEL.md) | Instrucciones agente IA — Axel |
+| [`docs/AGENTE-ANDREA.md`](./docs/AGENTE-ANDREA.md) | Instrucciones agente IA — Andrea |
+| [`docs/AGENTE-APOYO.md`](./docs/AGENTE-APOYO.md) | Instrucciones agente IA — Daniel |

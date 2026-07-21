@@ -15,7 +15,7 @@ Que cualquier foto de un documento real de Portoviejo salga convertida en un res
 | 0:30–2:00 | Afinar `SYSTEM_NARRAR` en `lib/claude.ts` con 3–4 documentos reales: planilla de agua, trámite municipal, receta | ☐ |
 | 2:00–3:00 | Probar `/api/ask` con preguntas típicas ("¿cuánto pago?", "¿qué llevo?"); manejar foto borrosa/ilegible con gracia | ☐ |
 | 3:00–4:00 | Verificar métrica de legibilidad (que siempre mejore); conseguir cifras reales CONADIS/INEC sobre discapacidad visual | ☐ |
-| 4:00–5:00 | **Pitch**: slides con el guion de `docs/03-pitch/guion-pitch.md` (si hay Persona 3, esto lo hace ella y tú sigues afinando prompts) | ☐ |
+| 4:00–5:00 | **Pitch**: slides con el guion de `docs/03-pitch/guion-pitch.md` (Daniel lidera pitch; Axel sigue con backend si hace falta) | ☐ |
 | 5:00–5:45 | **Con Andrea**: ensayo de demo + pitch cronometrado | ☐ |
 | 5:45–6:00 | Buffer | ☐ |
 

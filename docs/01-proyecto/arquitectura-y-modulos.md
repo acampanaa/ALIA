@@ -22,13 +22,14 @@ Stack: Next.js 15 (App Router) + API de Claude (`claude-sonnet-5`, visión, stru
 
 ## Reparto de módulos — regla de oro para no chocar
 
-**Cada archivo tiene UN dueño. Nadie edita archivos del otro módulo sin avisar.**
+**Cada archivo tiene UN dueño principal. Si otro lo toca, avisa antes.**
 
-| Módulo | Dueño | Archivos |
+| Módulo | Dueño principal | Archivos |
 |---|---|---|
 | **Frontend / UX accesible** | Andrea | `app/page.tsx`, `app/layout.tsx`, `app/globals.css`, `components/*`, `lib/speech.ts` |
 | **Backend / IA** | Axel | `app/api/*`, `lib/claude.ts`, `lib/readability.ts` |
-| **Pitch / Datos / QA** | Persona 3 (o compartido si son 2) | `docs/*`, slides, video de respaldo |
+| **QA / Pitch / Docs** | Daniel | `docs/*`, slides, video de respaldo |
+| **Código de apoyo** | Daniel *(con aviso)* | Bugs QA, polish, refuerzo en frontend o backend |
 
 ### El contrato entre módulos (NO romper sin acordarlo)
 

@@ -30,7 +30,7 @@
 | F5 | Métrica de legibilidad | Índice antes/después visible en cada resultado (evidencia ODS) | Backend |
 | F6 | Calidad de narración | El resumen suena natural, corto y sin jerga con documentos reales de Portoviejo | Backend |
 | F7 | Accesibilidad propia | Usable con TalkBack sin mirar la pantalla; foco visible; aria-live | Frontend |
-| F8 | Pitch + evidencia | Slides, guion cronometrado, cifras verificadas, video de respaldo | Pitch/QA |
+| F8 | Pitch + evidencia | Slides, guion cronometrado, cifras verificadas, video de respaldo | Daniel |
 
 ## Reglas anti-riesgo (leer antes de empezar)
 
