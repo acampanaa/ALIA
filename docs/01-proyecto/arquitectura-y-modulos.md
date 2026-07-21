@@ -12,13 +12,13 @@ lib/speech.ts              → hablar() / escuchar() (Web Speech)  [FRONTEND]
 
 app/api/narrate/route.ts   → foto/texto → IA visión → JSON       [BACKEND]
 app/api/ask/route.ts       → pregunta + contexto → respuesta     [BACKEND]
-lib/claude.ts              → cliente + system prompts + schema   [BACKEND]
-lib/readability.ts         → índice Fernández-Huerta             [BACKEND]
+lib/openai.ts              → cliente + system prompts + schema   [BACKEND]
+lib/readability.ts         → índice Fernández-Huerta             [MÉTRICA — Daniel]
 
 docs/                      → planes, pitch, evidencia            [PITCH/QA]
 ```
 
-Stack: Next.js 15 (App Router) + API de Claude (`claude-sonnet-5`, visión, structured outputs) + Web Speech API (gratis, en navegador) + Tailwind 4. Deploy: Vercel.
+Stack: Next.js 15 (App Router) + API de OpenAI (`gpt-4o`, visión, structured outputs) + Web Speech API (gratis, en navegador) + Tailwind 4. Deploy: Vercel.
 
 ## Reparto de módulos — regla de oro para no chocar
 
@@ -27,7 +27,8 @@ Stack: Next.js 15 (App Router) + API de Claude (`claude-sonnet-5`, visión, stru
 | Módulo | Dueño principal | Archivos |
 |---|---|---|
 | **Frontend / UX accesible** | Andrea | `app/page.tsx`, `app/layout.tsx`, `app/globals.css`, `components/*`, `lib/speech.ts` |
-| **Backend / IA** | Axel | `app/api/*`, `lib/claude.ts`, `lib/readability.ts` |
+| **Backend / IA** | Axel | `app/api/*`, `lib/openai.ts` |
+| **Métrica de legibilidad (ODS)** | Daniel | `lib/readability.ts` — Axel solo la importa |
 | **QA / Pitch / Docs** | Daniel | `docs/*`, slides, video de respaldo |
 | **Código de apoyo** | Daniel *(con aviso)* | Bugs QA, polish, refuerzo en frontend o backend |
 

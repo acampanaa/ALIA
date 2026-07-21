@@ -55,8 +55,8 @@
 | Dueño principal | Archivos | Coordinar con |
 |---|---|---|
 | **Andrea** (frontend) | `app/page.tsx`, `app/layout.tsx`, `app/globals.css`, `components/*`, `lib/speech.ts` | Axel si cambia el contrato JSON |
-| **Axel** (backend/IA) | `app/api/narrate/route.ts`, `app/api/ask/route.ts`, `lib/claude.ts`, `lib/readability.ts` | Andrea si cambia el contrato JSON |
-| **Daniel** (QA / pitch / refuerzo) | `docs/*`, slides, video respaldo · **también puede tocar código** (bugs QA, polish, apoyo frontend/backend) | Andrea o Axel según el archivo — **avisar antes de editar** |
+| **Axel** (backend/IA) | `app/api/narrate/route.ts`, `app/api/ask/route.ts`, `lib/openai.ts` | Andrea si cambia el contrato JSON |
+| **Daniel** (QA / pitch / código) | **`lib/readability.ts`** (métrica ODS — módulo de código propio) · `docs/*`, slides, video respaldo · también bugs QA/polish en otros archivos | Andrea o Axel según el archivo — **avisar antes de editar** lo que no es suyo |
 
 El contrato entre frontend y backend está en [`docs/01-proyecto/arquitectura-y-modulos.md`](docs/01-proyecto/arquitectura-y-modulos.md). **No cambiar campos JSON sin avisar.**
 
@@ -68,21 +68,19 @@ El contrato entre frontend y backend está en [`docs/01-proyecto/arquitectura-y-
 app/page.tsx                 → pantalla única audio-first          [Andrea]
 app/api/narrate/route.ts     → foto/texto → IA visión → JSON       [Axel]
 app/api/ask/route.ts         → pregunta + contexto → respuesta     [Axel]
-lib/claude.ts                → prompts + schema                     [Axel]
-lib/readability.ts           → índice Fernández-Huerta (ODS)        [Axel]
+lib/openai.ts                → prompts + schema                     [Axel]
+lib/readability.ts           → índice Fernández-Huerta (ODS)        [Daniel]
 lib/speech.ts                → TTS/STT Web Speech API             [Andrea]
 components/                  → BotonGigante, IndicadorVoz, etc.     [Andrea]
 ```
 
-**Stack:** Next.js 15 · Tailwind 4 · Claude API (visión) · Web Speech · Vercel
+**Stack:** Next.js 15 · Tailwind 4 · OpenAI GPT-4o (visión) · Web Speech · Vercel
 
 ---
 
-## ⚠ Nota — Requisito OpenAI del organizador
+## ✅ Backend de IA — OpenAI
 
-El reto puede exigir **OpenAI** (GPT visión/texto). El repo actual usa **Anthropic Claude** en `lib/claude.ts`.
-
-**Decisión pendiente (Axel, Fase 0):** evaluar migración a GPT-4o más adelante. **No migrar hasta que el equipo lo decida.**
+El backend corre sobre **OpenAI GPT-4o** (visión + structured outputs) en `lib/openai.ts`, con **Codex** como asistente de desarrollo. Clave en `.env.local`: `OPENAI_API_KEY` (también en Vercel). No cambiar de proveedor sin decisión del equipo.
 
 ---
 
@@ -136,15 +134,16 @@ Confirma rol y orden. No toco UI salvo emergencia.
 Soy Andrea. Repo: ~/proyectos/ALIA (producto ALIA).
 Lee LEEME-PRIMERO.md y docs/AGENTE-ANDREA.md.
 Frontend accesible audio-first: page.tsx, componentes, TTS/STT, TalkBack, deploy Vercel.
-Confirma rol. No toco lib/claude.ts ni prompts sin coordinar con Axel.
+Confirma rol. No toco lib/openai.ts ni prompts sin coordinar con Axel.
 ```
 
 ### Daniel
 ```
 Soy Daniel (Persona 3). Repo: ~/proyectos/ALIA (ALIA).
 Lee LEEME-PRIMERO.md y docs/AGENTE-APOYO.md.
+Mi módulo de código: lib/readability.ts (métrica ODS).
 QA TalkBack, documentos reales Portoviejo, cifras CONADIS, pitch, video respaldo.
-También puedo tocar código (bugs, polish, apoyo) — aviso a Andrea o Axel antes de editar su archivo.
+También puedo tocar otro código (bugs, polish, apoyo) — aviso a Andrea o Axel antes de editar su archivo.
 ```
 
 ---

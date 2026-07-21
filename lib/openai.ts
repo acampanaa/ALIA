@@ -1,8 +1,13 @@
-import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 
-export const claude = new Anthropic();
+// perezoso: el constructor exige OPENAI_API_KEY y rompería el build sin ella
+let cliente: OpenAI | null = null;
+export function getOpenAI(): OpenAI {
+  if (!cliente) cliente = new OpenAI();
+  return cliente;
+}
 
-export const MODELO = "claude-sonnet-5";
+export const MODELO = "gpt-4o";
 
 // Explica el documento a una persona ciega: qué es, qué dice y qué debe hacer.
 // El resumen se narra por voz, así que debe sonar natural leído en voz alta.
@@ -30,9 +35,9 @@ Responde SOLO con base en el documento que se te da como contexto. Reglas:
 - Si el documento no contiene la respuesta, dilo honestamente y sugiere a quién podría preguntar.
 - No uses formato, viñetas ni símbolos: solo prosa hablada.`;
 
-// Schema para structured outputs: garantiza JSON parseable en /api/narrate
+// Schema para structured outputs (json_schema strict): garantiza JSON parseable
 export const SCHEMA_NARRACION = {
-  type: "object" as const,
+  type: "object",
   properties: {
     tipoDocumento: {
       type: "string",
@@ -65,7 +70,7 @@ export const SCHEMA_NARRACION = {
   },
   required: ["tipoDocumento", "resumenClaro", "datosClave", "textoCompleto", "legible"],
   additionalProperties: false,
-};
+} as Record<string, unknown>;
 
 export interface Narracion {
   tipoDocumento: string;

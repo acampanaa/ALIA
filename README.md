@@ -14,7 +14,7 @@ Un documento impreso es completamente inaccesible para una persona ciega: los le
 ## Cómo funciona
 
 1. 📷 **Fotografía** el documento (o pega su texto)
-2. 🧠 Claude (visión) lo identifica, lo **simplifica a lenguaje claro** y extrae los datos clave
+2. 🧠 GPT-4o (visión) lo identifica, lo **simplifica a lenguaje claro** y extrae los datos clave
 3. 🔊 La app lo **narra en voz alta** (Web Speech API, en el navegador)
 4. 🎤 Preguntas por voz: *"¿cuánto tengo que pagar?"* → respuesta hablada
 5. 📊 Cada documento muestra su **índice de legibilidad antes/después** (Fernández-Huerta) — la evidencia de impacto ODS
@@ -22,7 +22,7 @@ Un documento impreso es completamente inaccesible para una persona ciega: los le
 ## Correr el proyecto
 
 ```bash
-cp .env.local.example .env.local   # y pon tu ANTHROPIC_API_KEY
+cp .env.local.example .env.local   # y pon tu OPENAI_API_KEY
 npm install
 npm run dev
 ```
@@ -32,7 +32,7 @@ Abrir http://localhost:3000 en **Chrome** (el reconocimiento de voz solo funcion
 ## Stack
 
 - **Next.js 15** (App Router) + Tailwind CSS 4
-- **API de Claude** (`claude-sonnet-5`) — visión + lenguaje claro + Q&A, con structured outputs
+- **API de OpenAI** (`gpt-4o`) — visión + lenguaje claro + Q&A, con structured outputs. Codex como asistente de desarrollo
 - **Web Speech API** — TTS y STT gratis en el navegador, español
 - Deploy en **Vercel**
 

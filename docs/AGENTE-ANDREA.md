@@ -28,7 +28,7 @@ TU ROL:
 - Deploy Vercel desde hora 0:30
 - Auditoría TalkBack hora 4-5
 
-NO tocar: app/api/, lib/claude.ts, lib/readability.ts (Axel)
+NO tocar: app/api/, lib/openai.ts (Axel) ni lib/readability.ts (Daniel)
 
 Demo en CHROME (STT). Deploy Vercel siempre.
 
@@ -67,8 +67,8 @@ lib/speech.ts              → hablar() / escuchar()
 **NO tocar:**
 ```
 app/api/**
-lib/claude.ts
-lib/readability.ts         (Axel calcula; tú muestras)
+lib/openai.ts              (Axel)
+lib/readability.ts         (Daniel calcula; tú muestras)
 ```
 
 ---

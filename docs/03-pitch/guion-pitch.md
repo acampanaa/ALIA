@@ -31,7 +31,7 @@
 
 ## 5. De Portoviejo al mundo (20 s)
 
-> "Nace en Portoviejo con planillas de agua y trámites del municipio. Pero Claude lee documentos en cualquier idioma: la misma app funciona mañana en Bogotá, en Manila o en Nairobi. La barrera del papel es global; la solución también."
+> "Nace en Portoviejo con planillas de agua y trámites del municipio. Pero la IA lee documentos en cualquier idioma: la misma app funciona mañana en Bogotá, en Manila o en Nairobi. La barrera del papel es global; la solución también."
 
 - Costo marginal por documento: centavos. La voz corre gratis en el navegador.
 - Siguiente paso: alianza con GAD Portoviejo y CONADIS (eje "Alianzas para los ODS").

@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
-import { claude, MODELO, SYSTEM_NARRAR, SCHEMA_NARRACION, type Narracion } from "@/lib/claude";
+import { getOpenAI, MODELO, SYSTEM_NARRAR, SCHEMA_NARRACION, type Narracion } from "@/lib/openai";
 import { fernandezHuerta, etiquetaLegibilidad } from "@/lib/readability";
-import type Anthropic from "@anthropic-ai/sdk";
+import type OpenAI from "openai";
 
 export const maxDuration = 60;
 
-const MEDIA_PERMITIDOS = ["image/jpeg", "image/png", "image/webp", "image/gif"] as const;
-type MediaPermitido = (typeof MEDIA_PERMITIDOS)[number];
+const MEDIA_PERMITIDOS = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 
 export async function POST(req: Request) {
   try {
@@ -16,43 +15,43 @@ export async function POST(req: Request) {
       texto?: string;
     };
 
-    let contenido: Anthropic.ContentBlockParam[];
+    let contenido: OpenAI.Chat.Completions.ChatCompletionContentPart[];
     if (body.imageBase64) {
-      const mediaType = MEDIA_PERMITIDOS.includes(body.mediaType as MediaPermitido)
-        ? (body.mediaType as MediaPermitido)
+      const mediaType = MEDIA_PERMITIDOS.includes(body.mediaType ?? "")
+        ? body.mediaType
         : "image/jpeg";
       contenido = [
         {
-          type: "image",
-          source: { type: "base64", media_type: mediaType, data: body.imageBase64 },
+          type: "image_url",
+          image_url: { url: `data:${mediaType};base64,${body.imageBase64}` },
         },
         { type: "text", text: "Explica este documento." },
       ];
     } else if (body.texto) {
-      contenido = [
-        { type: "text", text: `Explica este documento:\n\n${body.texto}` },
-      ];
+      contenido = [{ type: "text", text: `Explica este documento:\n\n${body.texto}` }];
     } else {
       return NextResponse.json({ error: "Falta imageBase64 o texto" }, { status: 400 });
     }
 
-    const respuesta = await claude.messages.create({
+    const respuesta = await getOpenAI().chat.completions.create({
       model: MODELO,
-      max_tokens: 4000,
-      system: SYSTEM_NARRAR,
-      output_config: {
-        effort: "medium",
-        format: { type: "json_schema", schema: SCHEMA_NARRACION },
+      max_completion_tokens: 4000,
+      response_format: {
+        type: "json_schema",
+        json_schema: { name: "narracion", strict: true, schema: SCHEMA_NARRACION },
       },
-      messages: [{ role: "user", content: contenido }],
+      messages: [
+        { role: "system", content: SYSTEM_NARRAR },
+        { role: "user", content: contenido },
+      ],
     });
 
-    const bloqueTexto = respuesta.content.find((b) => b.type === "text");
-    if (!bloqueTexto || bloqueTexto.type !== "text") {
+    const texto = respuesta.choices[0]?.message?.content;
+    if (!texto) {
       return NextResponse.json({ error: "El modelo no devolvió respuesta" }, { status: 502 });
     }
 
-    const narracion = JSON.parse(bloqueTexto.text) as Narracion;
+    const narracion = JSON.parse(texto) as Narracion;
 
     // Evidencia ODS: índice de legibilidad antes (documento) vs después (resumen)
     const indiceOriginal = fernandezHuerta(narracion.textoCompleto);

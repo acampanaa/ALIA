@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { claude, MODELO, SYSTEM_PREGUNTAR } from "@/lib/claude";
+import { getOpenAI, MODELO, SYSTEM_PREGUNTAR } from "@/lib/openai";
 
 export const maxDuration = 30;
 
@@ -10,12 +10,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Falta pregunta o contexto" }, { status: 400 });
     }
 
-    const respuesta = await claude.messages.create({
+    const respuesta = await getOpenAI().chat.completions.create({
       model: MODELO,
-      max_tokens: 500,
-      system: SYSTEM_PREGUNTAR,
-      output_config: { effort: "low" },
+      max_completion_tokens: 500,
       messages: [
+        { role: "system", content: SYSTEM_PREGUNTAR },
         {
           role: "user",
           content: `DOCUMENTO:\n${body.contexto}\n\nPREGUNTA DEL USUARIO (por voz): ${body.pregunta}`,
@@ -23,8 +22,7 @@ export async function POST(req: Request) {
       ],
     });
 
-    const bloqueTexto = respuesta.content.find((b) => b.type === "text");
-    const texto = bloqueTexto?.type === "text" ? bloqueTexto.text : "No pude responder.";
+    const texto = respuesta.choices[0]?.message?.content ?? "No pude responder.";
 
     return NextResponse.json({ respuesta: texto });
   } catch (err) {

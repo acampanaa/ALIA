@@ -1,7 +1,7 @@
 # 👩‍💻 Plan de ANDREA — Módulo Frontend / UX accesible
 
 **Archivos que te pertenecen:** `app/page.tsx`, `app/layout.tsx`, `app/globals.css`, `components/*`, `lib/speech.ts`
-**No tocas:** `app/api/*`, `lib/claude.ts`, `lib/readability.ts` (módulo de Axel)
+**No tocas:** `app/api/*`, `lib/openai.ts` (módulo de Axel) ni `lib/readability.ts` (módulo de Daniel)
 
 ## Tu misión
 

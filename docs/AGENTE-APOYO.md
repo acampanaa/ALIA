@@ -19,8 +19,9 @@ LEE:
 4. docs/02-equipo/persona-3-pitch-qa.md
 
 TU ROL (Daniel):
+- MÓDULO DE CÓDIGO PROPIO: lib/readability.ts — la métrica de legibilidad Fernández-Huerta (evidencia ODS del pitch). La afinas, calibras y validas tú.
 - QA TalkBack, documentos reales Portoviejo, cifras CONADIS, pitch, video respaldo
-- TAMBIÉN puedes tocar código: bugs de QA, polish UI, apoyo frontend o backend
+- TAMBIÉN puedes tocar el resto del código: bugs de QA, polish UI, apoyo frontend o backend
 - Antes de editar un archivo de Andrea o Axel, avisa cuál vas a tocar
 
 TAREAS:
@@ -39,6 +40,7 @@ Confirma rol y empieza por documentos + CONADIS. Si hay bugs, corrígelos o pide
 
 | Área | Responsabilidad |
 |---|---|
+| **Módulo propio: métrica de legibilidad** | `lib/readability.ts` — el índice Fernández-Huerta que sale en pantalla y en el pitch. Calibrarlo con textos reales y validar que original < claro siempre |
 | **Documentos demo** | Conseguir papeles reales de Portoviejo para probar y presentar |
 | **Datos CONADIS/INEC** | Cifras verificadas para el pitch |
 | **QA TalkBack** | Probar la app como la usaría una persona ciega |
@@ -53,14 +55,16 @@ Daniel **sí toca código**. Reglas para no chocar:
 
 | Puedes | Regla |
 |---|---|
-| Cualquier archivo del repo | **Avisar antes** a Andrea (frontend) o Axel (backend) si no es tuyo |
-| Bugs encontrados en QA | Corregirlos tú o en pareja con quien sea dueño del archivo |
+| `lib/readability.ts` | **Módulo tuyo** — edita libre. Es la métrica del pitch: cuídala como evidencia |
 | `docs/*`, slides | Dueño principal — edita libre |
+| Cualquier otro archivo del repo | **Avisar antes** a Andrea (frontend) o Axel (backend) |
+| Bugs encontrados en QA | Corregirlos tú o en pareja con quien sea dueño del archivo |
 | Contrato JSON (`/api/narrate`, `/api/ask`) | **No cambiar campos** sin acordarlo con Andrea y Axel |
 
 **Dueños principales (coordina con ellos):**
 - Andrea → `app/page.tsx`, `components/*`, `lib/speech.ts`, `globals.css`
-- Axel → `app/api/*`, `lib/claude.ts`, `lib/readability.ts`
+- Axel → `app/api/*`, `lib/openai.ts`
+- Tú → `lib/readability.ts` (Axel solo la importa; si necesita otro campo, te lo pide)
 
 ---
 
@@ -142,7 +146,7 @@ Leer `docs/03-pitch/guion-pitch.md`. Ayudar a:
 |---|---|
 | 0:00–0:45 | Clonar repo, `npm run dev`, verificar app |
 | 0:45–2:00 | Buscar documentos + empezar CONADIS |
-| 2:00–3:00 | Entregar fotos a Axel; probar narrate; arreglar bugs menores si hay |
+| 2:00–3:00 | Entregar fotos a Axel; **calibrar `lib/readability.ts`** con los textos reales (que original < claro siempre; ajustar etiquetas si hace falta) | 
 | 3:00–4:00 | QA TalkBack — corregir o escalar bugs |
 | 4:00–5:00 | Terminar CONADIS; ensayo pitch; apoyo en código si hace falta |
 | 5:00–5:30 | **Grabar video respaldo** |
@@ -152,6 +156,7 @@ Leer `docs/03-pitch/guion-pitch.md`. Ayudar a:
 
 ## Checklist final
 
+- [ ] `lib/readability.ts` calibrada con documentos reales (original < claro siempre)
 - [ ] 2+ documentos demo entregados
 - [ ] 1+ cifra CONADIS verificada
 - [ ] QA TalkBack documentado (y bugs corregidos o reportados)
