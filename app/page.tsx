@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import BotonGigante from "@/components/BotonGigante";
+import Icono from "@/components/Icono";
 import ResultadoDocumento, { type Legibilidad } from "@/components/ResultadoDocumento";
 import { hablar, callar, escuchar, soportaEscucha } from "@/lib/speech";
 
@@ -9,6 +10,7 @@ interface Resultado {
   tipoDocumento: string;
   resumenClaro: string;
   datosClave: { etiqueta: string; valor: string }[];
+  proximosPasos: string[];
   textoCompleto: string;
   legible: boolean;
   legibilidad: Legibilidad | null;
@@ -16,99 +18,155 @@ interface Resultado {
 
 type Estado = "inicio" | "procesando" | "listo" | "escuchando" | "respondiendo";
 
+const pasos = ["Documento", "Explicación", "Preguntas"];
+
 export default function Home() {
   const [estado, setEstado] = useState<Estado>("inicio");
   const [resultado, setResultado] = useState<Resultado | null>(null);
   const [respuestaVoz, setRespuestaVoz] = useState<string | null>(null);
   const [anuncio, setAnuncio] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const [mostrarTexto, setMostrarTexto] = useState(false);
   const [textoPegado, setTextoPegado] = useState("");
-  const saludado = useRef(false);
+  const [altaVisibilidad, setAltaVisibilidad] = useState(false);
+  const campoTexto = useRef<HTMLTextAreaElement>(null);
+  const resultadoEnPantalla = useRef<HTMLDivElement>(null);
+  const alertaError = useRef<HTMLDivElement>(null);
 
-  // Audio-first: al abrir la app, la voz explica qué hacer
   useEffect(() => {
-    if (saludado.current) return;
-    saludado.current = true;
-    const saludar = () =>
-      hablar("Hola, soy ALIA. Toca el botón grande y fotografía tu documento. Yo te lo explico.");
-    // las voces cargan asíncrono en algunos navegadores
-    if (window.speechSynthesis.getVoices().length > 0) saludar();
-    else window.speechSynthesis.onvoiceschanged = saludar;
-  }, []);
+    if (mostrarTexto) campoTexto.current?.focus();
+  }, [mostrarTexto]);
 
-  function anunciar(mensaje: string) {
+  useEffect(() => {
+    if (resultado) resultadoEnPantalla.current?.focus();
+  }, [resultado]);
+
+  useEffect(() => {
+    if (error) alertaError.current?.focus();
+  }, [error]);
+
+  function anunciar(mensaje: string, conVoz = true) {
+    setAnuncio(mensaje);
+    if (conVoz) hablar(mensaje);
+  }
+
+  function mostrarError(mensaje: string) {
+    setError(mensaje);
     setAnuncio(mensaje);
     hablar(mensaje);
   }
 
   async function procesar(payload: { imageBase64?: string; mediaType?: string; texto?: string }) {
     setEstado("procesando");
+    setError(null);
     setRespuestaVoz(null);
-    anunciar("Leyendo tu documento. Dame unos segundos.");
+    anunciar("Estoy leyendo tu documento. Dame unos segundos.");
+
     try {
-      const res = await fetch("/api/narrate", {
+      const respuesta = await fetch("/api/narrate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Error al procesar");
-      setResultado(data);
+      const data = (await respuesta.json()) as Resultado & { error?: string };
+      if (!respuesta.ok) throw new Error(data.error ?? "No pude procesar el documento.");
+      if (!data.tipoDocumento || !data.resumenClaro) {
+        throw new Error("La respuesta del documento está incompleta.");
+      }
+
+      const proximosPasos = Array.isArray(data.proximosPasos)
+        ? data.proximosPasos.filter((paso): paso is string => typeof paso === "string")
+        : [];
+      const resultadoCompleto = { ...data, proximosPasos };
+      const pasosHablados = proximosPasos.length > 0
+        ? " Lo importante: " + proximosPasos.join(" ")
+        : "";
+
+      setResultado(resultadoCompleto);
       setEstado("listo");
       setAnuncio("Documento listo.");
-      hablar(`${data.tipoDocumento}. ${data.resumenClaro}`);
+      hablar(data.tipoDocumento + ". " + data.resumenClaro + pasosHablados);
     } catch (err) {
       setEstado("inicio");
-      const msg = err instanceof Error ? err.message : "Error desconocido";
-      anunciar(`Hubo un problema: ${msg}. Intenta otra vez.`);
+      const mensaje = err instanceof Error ? err.message : "Ocurrió un error inesperado.";
+      mostrarError(`${mensaje} Intenta nuevamente.`);
     }
   }
 
-  function onFoto(archivo: File) {
+  function recibirFoto(archivo: File) {
+    if (!archivo.type.startsWith("image/")) {
+      mostrarError("El archivo debe ser una imagen.");
+      return;
+    }
+
     const lector = new FileReader();
+    lector.onerror = () => mostrarError("No pude abrir la imagen. Elige otra e intenta nuevamente.");
     lector.onload = () => {
       const dataUrl = lector.result as string;
       const [cabecera, base64] = dataUrl.split(",");
+      if (!base64) {
+        mostrarError("La imagen no se pudo preparar. Elige otra e intenta nuevamente.");
+        return;
+      }
       const mediaType = cabecera.match(/data:(.*?);/)?.[1] ?? "image/jpeg";
       procesar({ imageBase64: base64, mediaType });
     };
     lector.readAsDataURL(archivo);
   }
 
-  async function preguntar() {
+  async function responderPregunta(pregunta: string, esRapida = false) {
     if (!resultado) return;
-    if (!soportaEscucha()) {
-      anunciar("Tu navegador no soporta preguntas por voz. Usa Chrome.");
-      return;
-    }
-    callar();
-    setEstado("escuchando");
-    setAnuncio("Te escucho. Haz tu pregunta.");
+    setEstado("respondiendo");
+    setError(null);
+    setRespuestaVoz(null);
+    anunciar(esRapida ? "Pregunta seleccionada. Buscando la respuesta." : "Estoy buscando la respuesta.");
+
     try {
-      const pregunta = await escuchar();
-      if (!pregunta) {
-        setEstado("listo");
-        anunciar("No escuché nada. Toca el micrófono e intenta otra vez.");
-        return;
-      }
-      setEstado("respondiendo");
-      anunciar("Buscando la respuesta.");
       const contexto = `${resultado.textoCompleto}\n\nResumen: ${resultado.resumenClaro}`;
-      const res = await fetch("/api/ask", {
+      const respuesta = await fetch("/api/ask", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pregunta, contexto }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Error al responder");
+      const data = (await respuesta.json()) as { respuesta?: string; error?: string };
+      if (!respuesta.ok || !data.respuesta) {
+        throw new Error(data.error ?? "No pude encontrar una respuesta.");
+      }
       setRespuestaVoz(data.respuesta);
       setEstado("listo");
       setAnuncio(data.respuesta);
       hablar(data.respuesta);
     } catch (err) {
       setEstado("listo");
-      const msg = err instanceof Error ? err.message : "Error desconocido";
-      anunciar(msg);
+      const mensaje = err instanceof Error ? err.message : "No pude responder.";
+      mostrarError(`${mensaje} Puedes intentarlo otra vez.`);
+    }
+  }
+
+  async function preguntarPorVoz() {
+    if (!resultado) return;
+    if (!soportaEscucha()) {
+      mostrarError("Este navegador no permite preguntas por voz. Puedes escribir tu pregunta aquí mismo.");
+      return;
+    }
+
+    callar();
+    setEstado("escuchando");
+    setError(null);
+    setAnuncio("Te escucho. Habla ahora.");
+
+    try {
+      const pregunta = await escuchar();
+      if (!pregunta) {
+        setEstado("listo");
+        mostrarError("No escuché una pregunta. Acércate al micrófono e intenta otra vez.");
+        return;
+      }
+      await responderPregunta(pregunta);
+    } catch (err) {
+      setEstado("listo");
+      const mensaje = err instanceof Error ? err.message : "No pude usar el micrófono.";
+      mostrarError(`${mensaje} También puedes escribir tu pregunta.`);
     }
   }
 
@@ -116,90 +174,178 @@ export default function Home() {
     callar();
     setResultado(null);
     setRespuestaVoz(null);
+    setError(null);
     setMostrarTexto(false);
     setTextoPegado("");
     setEstado("inicio");
-    anunciar("Listo. Fotografía otro documento cuando quieras.");
+    anunciar("Listo. Puedes fotografiar otro documento.");
   }
 
+  const pasoActual = estado === "inicio" ? 1 : estado === "procesando" ? 2 : 3;
+  const estadoPregunta =
+    estado === "escuchando" ? "escuchando" : estado === "respondiendo" ? "respondiendo" : "inactivo";
+
   return (
-    <main className="max-w-2xl mx-auto flex flex-col gap-8 p-6">
-      <header className="text-center">
-        <h1 className="text-5xl font-black text-yellow-400">ALIA</h1>
-        <p className="text-2xl mt-2">Tecnología que se adapta a ti</p>
-      </header>
+    <div className={`aplicacion ${altaVisibilidad ? "alta-visibilidad" : ""}`}>
+      <a href="#contenido-principal" className="saltar-contenido">Ir al contenido principal</a>
 
-      {/* Anuncios para lector de pantalla, además de la voz sintetizada */}
-      <p aria-live="polite" role="status" className="sr-only">
-        {anuncio}
-      </p>
-
-      {estado === "inicio" && !mostrarTexto && (
-        <BotonGigante
-          onFoto={onFoto}
-          onTexto={() => setMostrarTexto(true)}
-          deshabilitado={false}
-        />
-      )}
-
-      {estado === "inicio" && mostrarTexto && (
-        <form
-          className="flex flex-col gap-4"
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (textoPegado.trim()) procesar({ texto: textoPegado });
-          }}
-        >
-          <label htmlFor="texto-doc" className="text-2xl font-bold">
-            Pega aquí el texto del documento
-          </label>
-          <textarea
-            id="texto-doc"
-            value={textoPegado}
-            onChange={(e) => setTextoPegado(e.target.value)}
-            rows={8}
-            className="rounded-2xl bg-white text-black text-xl p-4"
-          />
+      <header className="barra-superior">
+        <div className="marca" aria-label="ALIA, Accesibilidad, Lenguaje, Inclusión y Autonomía">
+          <span className="marca-icono"><Icono nombre="documento" /></span>
+          <span><strong>ALIA</strong><small>Tecnología que se adapta a ti</small></span>
+        </div>
+        <div className="utilidades" aria-label="Opciones de accesibilidad">
           <button
-            type="submit"
-            className="min-h-16 rounded-2xl bg-yellow-400 text-black text-2xl font-extrabold"
+            type="button"
+            className="boton-utilidad"
+            onClick={() => hablar("Fotografía un documento o pega su texto. ALIA lo explicará y podrás hacer preguntas.")}
           >
-            Explicar este texto
+            <Icono nombre="volumen" />
+            <span>Escuchar guía</span>
           </button>
           <button
             type="button"
-            onClick={() => setMostrarTexto(false)}
-            className="min-h-16 rounded-2xl border-4 border-white/70 text-2xl font-bold"
+            className="boton-utilidad"
+            aria-pressed={altaVisibilidad}
+            onClick={() => setAltaVisibilidad((valor) => !valor)}
           >
-            Volver
+            <Icono nombre="contraste" />
+            <span>{altaVisibilidad ? "Vista normal" : "Alto contraste"}</span>
           </button>
-        </form>
-      )}
-
-      {estado === "procesando" && (
-        <div className="flex flex-col items-center gap-6 py-16 text-center">
-          <span aria-hidden="true" className="text-8xl animate-bounce">
-            👀
-          </span>
-          <p className="text-3xl font-bold">Leyendo tu documento…</p>
         </div>
-      )}
+      </header>
 
-      {(estado === "listo" || estado === "escuchando" || estado === "respondiendo") &&
-        resultado && (
-          <ResultadoDocumento
-            tipoDocumento={resultado.tipoDocumento}
-            resumenClaro={resultado.resumenClaro}
-            datosClave={resultado.datosClave}
-            legibilidad={resultado.legibilidad}
-            escuchando={estado === "escuchando"}
-            respuestaVoz={respuestaVoz}
-            onEscuchar={() => hablar(`${resultado.tipoDocumento}. ${resultado.resumenClaro}`)}
-            onPreguntar={preguntar}
-            onNuevo={reiniciar}
-            preguntaDeshabilitada={estado !== "listo"}
-          />
+      <main id="contenido-principal" className="contenido-principal">
+        <p className="sr-only" aria-live="polite" role="status">{anuncio}</p>
+
+        <nav className="progreso" aria-label="Progreso del documento">
+          <ol>
+            {pasos.map((paso, indice) => {
+              const numero = indice + 1;
+              return (
+                <li
+                  key={paso}
+                  className={numero < pasoActual ? "completo" : numero === pasoActual ? "actual" : ""}
+                  aria-current={numero === pasoActual ? "step" : undefined}
+                >
+                  <span>{numero < pasoActual ? <Icono nombre="check" /> : numero}</span>
+                  {paso}
+                </li>
+              );
+            })}
+          </ol>
+        </nav>
+
+        {error && (
+          <div ref={alertaError} tabIndex={-1} className="aviso aviso-error" role="alert">
+            <strong>No pudimos continuar</strong>
+            <span>{error}</span>
+          </div>
         )}
-    </main>
+
+        {estado === "inicio" && (
+          <section className="inicio">
+            <div className="presentacion">
+              <span className="etiqueta">Información clara y privada</span>
+              <h1>Entiende tus documentos sin depender de otra persona</h1>
+              <p>
+                Toma una foto. ALIA te explicará lo importante con palabras sencillas y en voz alta.
+              </p>
+              <ul className="beneficios" aria-label="Beneficios">
+                <li><Icono nombre="check" /> Lenguaje claro</li>
+                <li><Icono nombre="check" /> Audio inmediato</li>
+                <li><Icono nombre="check" /> Preguntas por voz</li>
+              </ul>
+            </div>
+
+            <div className="tarjeta-inicio">
+              {!mostrarTexto ? (
+                <>
+                  <div className="tarjeta-titulo">
+                    <span>Paso 1</span>
+                    <h2>¿Cómo quieres cargar el documento?</h2>
+                    <p>Elige una de estas dos opciones.</p>
+                  </div>
+                  <BotonGigante onFoto={recibirFoto} onTexto={() => setMostrarTexto(true)} deshabilitado={false} />
+                </>
+              ) : (
+                <form
+                  className="formulario-texto"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    const texto = textoPegado.trim();
+                    if (!texto) {
+                      mostrarError("Pega el contenido del documento antes de continuar.");
+                      return;
+                    }
+                    procesar({ texto });
+                  }}
+                >
+                  <button type="button" className="boton-volver" onClick={() => setMostrarTexto(false)}>
+                    <Icono nombre="volver" /> Volver
+                  </button>
+                  <div className="tarjeta-titulo">
+                    <span>Paso 1</span>
+                    <h2>Pega el texto del documento</h2>
+                    <p>No necesitas corregirlo ni ordenarlo.</p>
+                  </div>
+                  <label htmlFor="texto-documento">Contenido del documento</label>
+                  <textarea
+                    ref={campoTexto}
+                    id="texto-documento"
+                    value={textoPegado}
+                    onChange={(event) => setTextoPegado(event.target.value)}
+                    rows={9}
+                    placeholder="Pega aquí el texto que quieres entender"
+                  />
+                  <button type="submit" className="boton boton-primario" disabled={!textoPegado.trim()}>
+                    <Icono nombre="documento" /> Explicar este texto
+                  </button>
+                </form>
+              )}
+            </div>
+          </section>
+        )}
+
+        {estado === "procesando" && (
+          <section className="procesando" aria-labelledby="titulo-procesando" aria-busy="true">
+            <span className="cargador" aria-hidden="true" />
+            <span className="etiqueta">Paso 2 de 3</span>
+            <h1 id="titulo-procesando">Estamos preparando una explicación clara</h1>
+            <p>Identificamos el documento, sus fechas, montos y acciones importantes.</p>
+            <div className="esqueleto" aria-hidden="true"><span /><span /><span /></div>
+          </section>
+        )}
+
+        {resultado && estado !== "procesando" && (
+          <div ref={resultadoEnPantalla} tabIndex={-1} className="foco-programatico">
+            <ResultadoDocumento
+              tipoDocumento={resultado.tipoDocumento}
+              resumenClaro={resultado.resumenClaro}
+              datosClave={resultado.datosClave}
+              proximosPasos={resultado.proximosPasos}
+              legible={resultado.legible}
+              legibilidad={resultado.legibilidad}
+              estadoPregunta={estadoPregunta}
+              respuestaVoz={respuestaVoz}
+              onEscuchar={() => {
+                const pasosHablados = resultado.proximosPasos.length > 0
+                  ? " Lo importante: " + resultado.proximosPasos.join(" ")
+                  : "";
+                hablar(resultado.tipoDocumento + ". " + resultado.resumenClaro + pasosHablados);
+              }}
+              onPreguntar={preguntarPorVoz}
+              onPreguntaTexto={responderPregunta}
+              onPreguntaRapida={(pregunta) => responderPregunta(pregunta, true)}
+              onNuevo={reiniciar}
+            />
+          </div>
+        )}
+      </main>
+
+      <footer className="pie-pagina">
+        <p>ALIA no crea un historial de tus documentos.</p>
+      </footer>
+    </div>
   );
 }

@@ -42,6 +42,7 @@ Frontend y backend solo se tocan a través de estos dos JSON. Mientras el contra
   "tipoDocumento": "planilla de agua potable",
   "resumenClaro": "…prosa apta para voz…",
   "datosClave": [{ "etiqueta": "Monto", "valor": "12,50 dólares" }],
+  "proximosPasos": ["Paga doce dólares con cincuenta centavos.", "Hazlo hasta el quince de agosto."],
   "textoCompleto": "…transcripción literal…",
   "legible": true,
   "legibilidad": {

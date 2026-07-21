@@ -1,32 +1,37 @@
 "use client";
 
-// Botón de micrófono para preguntar por voz + estado visible/audible.
+import Icono from "../components/Icono";
+
+export type EstadoPregunta = "inactivo" | "escuchando" | "respondiendo";
 
 export default function IndicadorVoz({
-  escuchando,
+  estado,
   onPreguntar,
   deshabilitado,
 }: {
-  escuchando: boolean;
+  estado: EstadoPregunta;
   onPreguntar: () => void;
   deshabilitado: boolean;
 }) {
+  const escuchando = estado === "escuchando";
+  const respondiendo = estado === "respondiendo";
+  const etiqueta = escuchando
+    ? "Te escucho. Habla ahora"
+    : respondiendo
+      ? "Buscando la respuesta"
+      : "Preguntar por voz";
+
   return (
     <button
       type="button"
       onClick={onPreguntar}
       disabled={deshabilitado}
       aria-pressed={escuchando}
-      className={`w-full min-h-24 rounded-2xl text-2xl font-extrabold px-6 py-5 border-8 transition-colors ${
-        escuchando
-          ? "bg-red-600 border-red-300 text-white animate-pulse"
-          : "bg-blue-600 border-blue-300 text-white"
-      } disabled:opacity-50`}
+      aria-busy={respondiendo}
+      className={`boton boton-primario boton-voz ${escuchando ? "esta-escuchando" : ""}`}
     >
-      <span aria-hidden="true" className="text-4xl mr-3">
-        🎤
-      </span>
-      {escuchando ? "Te escucho… habla ahora" : "Toca y hazme una pregunta"}
+      <Icono nombre="microfono" />
+      <span>{etiqueta}</span>
     </button>
   );
 }
