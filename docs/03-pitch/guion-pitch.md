@@ -1,4 +1,6 @@
-# PITCH — Clarito (guion, ~3 minutos)
+# PITCH — ALIA (guion, ~3 minutos)
+
+> **A**ccesibilidad, **L**enguaje, **I**nclusión y **A**utonomía · *Tecnología que se adapta a ti.*
 
 ## 1. El problema (30 s) — que duela
 
@@ -9,7 +11,7 @@
 
 ## 2. La solución (20 s)
 
-> "Clarito: cualquier papel, en tus oídos. Fotografías el documento y te lo explica en audio, en lenguaje claro. Y le puedes preguntar por voz."
+> "ALIA: Accesibilidad, Lenguaje, Inclusión y Autonomía. Fotografías el documento y te lo explica en audio, en lenguaje claro. Y le puedes preguntar por voz. Tecnología que se adapta a ti."
 
 ## 3. DEMO EN VIVO (90 s) — el corazón del pitch
 
@@ -36,7 +38,7 @@
 
 ## 6. Cierre (10 s)
 
-> "Entender un documento no debería ser un privilegio de quienes ven. Somos Andrea y Axel, y esto es Clarito."
+> "Entender un documento no debería ser un privilegio de quienes ven. Somos Andrea y Axel, y esto es ALIA."
 
 ---
 

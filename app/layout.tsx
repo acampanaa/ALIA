@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Clarito — Cualquier papel, en tus oídos",
+  title: "ALIA — Tecnología que se adapta a ti",
   description:
     "Fotografía un documento y escúchalo explicado en lenguaje claro. Accesibilidad con IA para personas ciegas y con baja visión.",
 };

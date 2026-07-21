@@ -1,8 +1,11 @@
-# Clarito 🎧📄
+# ALIA 🎧📄
+
+> **A**ccesibilidad, **L**enguaje, **I**nclusión y **A**utonomía
+> *Tecnología que se adapta a ti.*
 
 > **"Cualquier papel, en tus oídos"** — Hackathon Portoviejo · Reto: Accesibilidad con IA · ODS 10 y 11
 
-Una web app para **personas ciegas y con baja visión**: fotografías cualquier documento impreso (trámite, planilla, receta, notificación) y Clarito te lo **explica en audio con lenguaje claro**, responde tus **preguntas por voz** y ofrece un **modo baja visión** con texto gigante de alto contraste.
+Una web app para **personas ciegas y con baja visión**: fotografías cualquier documento impreso (trámite, planilla, receta, notificación) y ALIA te lo **explica en audio con lenguaje claro**, responde tus **preguntas por voz** y ofrece un **modo baja visión** con texto gigante de alto contraste.
 
 ## El problema
 
@@ -35,5 +38,16 @@ Abrir http://localhost:3000 en **Chrome** (el reconocimiento de voz solo funcion
 
 ## Documentos del proyecto
 
-- [`PLAN.md`](./PLAN.md) — cronograma de las 6 horas y reparto Andrea/Axel
-- [`PITCH.md`](./PITCH.md) — guion del pitch y evidencia ODS
+```
+docs/
+├── 01-proyecto/   → qué construimos y cómo nos repartimos sin chocar
+│   ├── objetivo-y-funcionalidades.md
+│   └── arquitectura-y-modulos.md      (dueños por archivo + contrato JSON)
+├── 02-equipo/     → plan hora a hora de cada persona
+│   ├── andrea-frontend.md
+│   ├── axel-backend.md
+│   └── persona-3-pitch-qa.md          (si son 2, aquí dice quién absorbe qué)
+└── 03-pitch/      → todo lo que ven los jueces
+    ├── guion-pitch.md
+    └── idea-completa.md
+```

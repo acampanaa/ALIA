@@ -61,7 +61,7 @@ export default function ResultadoDocumento({
           <strong>
             {legibilidad.original.indice}/100 ({legibilidad.original.etiqueta})
           </strong>{" "}
-          → versión Clarito{" "}
+          → versión ALIA{" "}
           <strong>
             {legibilidad.claro.indice}/100 ({legibilidad.claro.etiqueta})
           </strong>

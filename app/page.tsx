@@ -30,7 +30,7 @@ export default function Home() {
     if (saludado.current) return;
     saludado.current = true;
     const saludar = () =>
-      hablar("Hola, soy Clarito. Toca el botón grande y fotografía tu documento. Yo te lo explico.");
+      hablar("Hola, soy ALIA. Toca el botón grande y fotografía tu documento. Yo te lo explico.");
     // las voces cargan asíncrono en algunos navegadores
     if (window.speechSynthesis.getVoices().length > 0) saludar();
     else window.speechSynthesis.onvoiceschanged = saludar;
@@ -125,8 +125,8 @@ export default function Home() {
   return (
     <main className="max-w-2xl mx-auto flex flex-col gap-8 p-6">
       <header className="text-center">
-        <h1 className="text-5xl font-black text-yellow-400">Clarito</h1>
-        <p className="text-2xl mt-2">Cualquier papel, en tus oídos</p>
+        <h1 className="text-5xl font-black text-yellow-400">ALIA</h1>
+        <p className="text-2xl mt-2">Tecnología que se adapta a ti</p>
       </header>
 
       {/* Anuncios para lector de pantalla, además de la voz sintetizada */}
