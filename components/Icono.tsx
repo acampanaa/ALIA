@@ -7,7 +7,9 @@ export type NombreIcono =
   | "documento"
   | "check"
   | "volver"
-  | "nuevo";
+  | "nuevo"
+  | "subir"
+  | "cerrar";
 
 export default function Icono({
   nombre,
@@ -72,6 +74,13 @@ export default function Icono({
           <path d="M20 4v7h-7" />
         </>
       )}
+      {nombre === "subir" && (
+        <>
+          <path d="M12 16V4M7 9l5-5 5 5" />
+          <path d="M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5" />
+        </>
+      )}
+      {nombre === "cerrar" && <path d="m6 6 12 12M18 6 6 18" />}
     </svg>
   );
 }
