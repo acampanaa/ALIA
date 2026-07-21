@@ -1,6 +1,7 @@
 # tooling local — nunca entra al repo
 .claude/
 CLAUDE.md
+.DS_Store
 
 node_modules/
 .next/
