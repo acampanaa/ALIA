@@ -10,6 +10,7 @@ interface Resultado {
   tipoDocumento: string;
   resumenClaro: string;
   datosClave: { etiqueta: string; valor: string }[];
+  proximosPasos: string[];
   textoCompleto: string;
   legible: boolean;
   legibilidad: Legibilidad | null;
@@ -73,10 +74,18 @@ export default function Home() {
         throw new Error("La respuesta del documento está incompleta.");
       }
 
-      setResultado(data);
+      const proximosPasos = Array.isArray(data.proximosPasos)
+        ? data.proximosPasos.filter((paso): paso is string => typeof paso === "string")
+        : [];
+      const resultadoCompleto = { ...data, proximosPasos };
+      const pasosHablados = proximosPasos.length > 0
+        ? " Lo importante: " + proximosPasos.join(" ")
+        : "";
+
+      setResultado(resultadoCompleto);
       setEstado("listo");
       setAnuncio("Documento listo.");
-      hablar(`${data.tipoDocumento}. ${data.resumenClaro}`);
+      hablar(data.tipoDocumento + ". " + data.resumenClaro + pasosHablados);
     } catch (err) {
       setEstado("inicio");
       const mensaje = err instanceof Error ? err.message : "Ocurrió un error inesperado.";
@@ -314,11 +323,17 @@ export default function Home() {
               tipoDocumento={resultado.tipoDocumento}
               resumenClaro={resultado.resumenClaro}
               datosClave={resultado.datosClave}
+              proximosPasos={resultado.proximosPasos}
               legible={resultado.legible}
               legibilidad={resultado.legibilidad}
               estadoPregunta={estadoPregunta}
               respuestaVoz={respuestaVoz}
-              onEscuchar={() => hablar(`${resultado.tipoDocumento}. ${resultado.resumenClaro}`)}
+              onEscuchar={() => {
+                const pasosHablados = resultado.proximosPasos.length > 0
+                  ? " Lo importante: " + resultado.proximosPasos.join(" ")
+                  : "";
+                hablar(resultado.tipoDocumento + ". " + resultado.resumenClaro + pasosHablados);
+              }}
               onPreguntar={preguntarPorVoz}
               onPreguntaTexto={responderPregunta}
               onPreguntaRapida={(pregunta) => responderPregunta(pregunta, true)}

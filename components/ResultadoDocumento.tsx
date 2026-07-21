@@ -13,6 +13,7 @@ export default function ResultadoDocumento({
   tipoDocumento,
   resumenClaro,
   datosClave,
+  proximosPasos,
   legible,
   legibilidad,
   estadoPregunta,
@@ -26,6 +27,7 @@ export default function ResultadoDocumento({
   tipoDocumento: string;
   resumenClaro: string;
   datosClave: { etiqueta: string; valor: string }[];
+  proximosPasos: string[];
   legible: boolean;
   legibilidad: Legibilidad | null;
   estadoPregunta: EstadoPregunta;
@@ -72,6 +74,18 @@ export default function ResultadoDocumento({
         <h2 id="titulo-resumen">En pocas palabras</h2>
         <p>{resumenClaro}</p>
       </section>
+
+      {proximosPasos.length > 0 && (
+        <section className="proximos-pasos" aria-labelledby="titulo-proximos-pasos">
+          <h2 id="titulo-proximos-pasos">Lo importante: qué debes hacer</h2>
+          <ol>
+            {proximosPasos.map((paso, indice) => (
+              <li key={paso + "-" + indice}>{paso}</li>
+            ))}
+          </ol>
+          <p>Estas acciones fueron extraídas del documento original.</p>
+        </section>
+      )}
 
       {datosClave.length > 0 && (
         <section aria-labelledby="titulo-datos">

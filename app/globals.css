@@ -351,6 +351,18 @@ textarea::placeholder, input::placeholder { color: var(--texto-secundario); opac
   background: var(--superficie-suave);
 }
 .bloque-resumen p { margin: 0; font-size: clamp(1.1rem, 3vw, 1.35rem); line-height: 1.75; }
+.proximos-pasos {
+  margin: 22px 0 28px;
+  padding: clamp(18px, 4vw, 24px);
+  border-left: 6px solid var(--primario);
+  border-radius: 16px;
+  background: var(--superficie-suave);
+}
+.proximos-pasos h2 { margin-bottom: 12px; }
+.proximos-pasos ol { margin: 0; padding-left: 1.65rem; }
+.proximos-pasos li { padding: 7px 0 7px 4px; font-size: 1.08rem; font-weight: 700; line-height: 1.5; }
+.proximos-pasos li::marker { color: var(--primario); font-weight: 900; }
+.proximos-pasos p { margin: 12px 0 0; color: var(--texto-secundario); font-size: 0.88rem; }
 .datos-clave { display: grid; gap: 12px; margin: 0; }
 .dato-clave { padding: 16px; border: 1px solid var(--borde); border-radius: 14px; background: var(--fondo); }
 .dato-clave dt { color: var(--texto-secundario); font-size: 0.82rem; font-weight: 800; text-transform: uppercase; }
