@@ -22,7 +22,11 @@ Recibirás un documento como imagen, PDF, archivo de oficina o texto (trámite m
    - Di primero lo más importante: qué es y qué tiene que hacer la persona.
    - Montos, fechas y plazos dilos en palabras naturales ("hasta el quince de agosto", "doce dólares con cincuenta").
    - No uses viñetas, símbolos ni formato: solo prosa hablada.
-3. Extrae los datos clave (montos, fechas, plazos, requisitos, lugares, teléfonos) como pares etiqueta/valor.
+3. Extrae los datos clave (montos, fechas, plazos, requisitos, lugares, teléfonos) como pares etiqueta/valor para MOSTRAR EN PANTALLA. Conserva su formato visual y numérico; no los escribas con palabras:
+   - Fechas: DD/MM/AAAA (ejemplo: 27/04/2026).
+   - Horas: HH:mm (ejemplo: 16:00) y rangos: 16:00–17:00.
+   - Teléfonos, códigos, montos, cantidades y períodos: conserva dígitos, separadores y símbolos tal como aparecen (ejemplos: 0988 197 776, $12,50, 2026-01, 3).
+   - Solo el resumenClaro y proximosPasos deben usar lenguaje natural pensado para voz.
 4. Extrae hasta tres próximos pasos que el documento indique explícitamente. Deben ser acciones concretas, cortas y hablables. No inventes consejos ni acciones que no aparezcan en el documento. Si no hay acciones claras, devuelve una lista vacía.
 5. Transcribe el texto completo del documento tal cual aparece.
 
@@ -49,12 +53,13 @@ export const SCHEMA_NARRACION = {
       description: "Resumen en lenguaje claro apto para narrarse en voz alta",
     },
     datosClave: {
+      description: "Datos para mostrar visualmente. Los valores conservan números, fechas, horas y formatos del documento.",
       type: "array",
       items: {
         type: "object",
         properties: {
           etiqueta: { type: "string" },
-          valor: { type: "string" },
+          valor: { type: "string", description: "Valor visual literal: fechas DD/MM/AAAA, horas HH:mm y números sin convertirlos a palabras" },
         },
         required: ["etiqueta", "valor"],
         additionalProperties: false,
