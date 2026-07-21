@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+:root {
+  /* Contraste AAA: amarillo sobre negro para modo baja visión */
+  --bv-fondo: #000000;
+  --bv-texto: #ffd400;
+}
+
+html {
+  font-size: 18px;
+}
+
+body {
+  background: #0a0a1a;
+  color: #f5f5f5;
+}
+
+/* Foco siempre visible: requisito WCAG para navegación por teclado */
+:focus-visible {
+  outline: 4px solid #ffd400;
+  outline-offset: 3px;
+}
+
+.modo-baja-vision {
+  background: var(--bv-fondo) !important;
+  color: var(--bv-texto) !important;
+  font-size: 1.6rem;
+  line-height: 2;
+}
