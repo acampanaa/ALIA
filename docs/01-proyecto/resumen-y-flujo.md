@@ -267,10 +267,10 @@ flowchart LR
 
 ## 10. Agentes especialistas adicionales
 
-Además de los tres agentes del equipo existen dos asistentes especializados en `.claude/agents/`:
+Además de los tres agentes del equipo existen dos agentes especializados de Codex en `.codex/agents/`:
 
-- `prompt-lab`: revisa y mejora los prompts de narración y preguntas.
-- `ux-accesible`: audita semántica, contraste, foco, etiquetas, anuncios y controles táctiles.
+- `prompt-lab.toml`: revisa y mejora los prompts de narración y preguntas.
+- `ux-accesible.toml`: audita semántica, contraste, foco, etiquetas, anuncios y controles táctiles.
 
 Estos asistentes apoyan a Axel y Andrea respectivamente; no reemplazan la propiedad de sus módulos.
 

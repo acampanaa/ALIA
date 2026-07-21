@@ -1,4 +1,4 @@
-# CODEX.md — ALIA
+# AGENTS.md — ALIA
 
 App de accesibilidad para hackathon de 6 horas: fotografías un documento y lo escuchas explicado en lenguaje claro. Usuarios objetivo: personas ciegas y con baja visión. ALIA = Accesibilidad, Lenguaje, Inclusión y Autonomía.
 
