@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import Icono from "../components/Icono";
 import IndicadorVoz, { type EstadoPregunta } from "../components/IndicadorVoz";
+import { hablar, callar } from "@/lib/speech";
 
 export interface Legibilidad {
   original: { indice: number; etiqueta: string };
@@ -40,12 +41,50 @@ export default function ResultadoDocumento({
 }) {
   const [mostrarPregunta, setMostrarPregunta] = useState(false);
   const [pregunta, setPregunta] = useState("");
+  const [modoEnfoque, setModoEnfoque] = useState(false);
+  const [indicePaso, setIndicePaso] = useState(0);
   const inputPregunta = useRef<HTMLInputElement>(null);
+  const tituloPaso = useRef<HTMLHeadingElement>(null);
+  const botonModoEnfoque = useRef<HTMLButtonElement>(null);
+  const regresoDesdeEnfoque = useRef(false);
   const ocupado = estadoPregunta !== "inactivo";
 
   useEffect(() => {
     if (mostrarPregunta) inputPregunta.current?.focus();
   }, [mostrarPregunta]);
+
+  useEffect(() => {
+    if (!modoEnfoque) {
+      if (regresoDesdeEnfoque.current) {
+        regresoDesdeEnfoque.current = false;
+        botonModoEnfoque.current?.focus();
+      }
+      return;
+    }
+
+    const paso = proximosPasos[indicePaso];
+    if (!paso) return;
+
+    tituloPaso.current?.focus();
+    callar();
+    const prefijo = indicePaso === 0 ? "Modo enfoque. " : "";
+    hablar(prefijo + "Paso " + (indicePaso + 1) + " de " + proximosPasos.length + ". " + paso);
+  }, [modoEnfoque, indicePaso, proximosPasos]);
+
+  function escucharPaso() {
+    const paso = proximosPasos[indicePaso];
+    if (!paso) return;
+    callar();
+    hablar("Paso " + (indicePaso + 1) + " de " + proximosPasos.length + ". " + paso);
+  }
+
+  function salirModoEnfoque() {
+    callar();
+    regresoDesdeEnfoque.current = true;
+    setModoEnfoque(false);
+    setIndicePaso(0);
+    hablar("Volviste al resumen del documento.");
+  }
 
   function enviarPregunta(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -53,6 +92,46 @@ export default function ResultadoDocumento({
     if (!limpia || ocupado) return;
     onPreguntaTexto(limpia);
     setPregunta("");
+  }
+
+  if (modoEnfoque) {
+    const pasoActual = proximosPasos[indicePaso] ?? "";
+    const haySiguiente = indicePaso < proximosPasos.length - 1;
+
+    return (
+      <article className="resultado resultado-enfoque">
+        <header className="enfoque-encabezado">
+          <span className="estado-exitoso">Modo enfoque</span>
+          <h1 ref={tituloPaso} tabIndex={-1}>Paso {indicePaso + 1} de {proximosPasos.length}</h1>
+        </header>
+
+        <section className="paso-enfoque" aria-live="polite" aria-atomic="true" aria-label="Paso actual">
+          <p>{pasoActual}</p>
+        </section>
+
+        <div className="controles-enfoque">
+          <button type="button" className="boton boton-secundario" onClick={escucharPaso}>
+            <Icono nombre="volumen" />
+            Escuchar este paso otra vez
+          </button>
+
+          {haySiguiente && (
+            <button
+              type="button"
+              className="boton boton-primario"
+              onClick={() => setIndicePaso((indice) => indice + 1)}
+            >
+              Siguiente paso
+            </button>
+          )}
+
+          <button type="button" className="boton boton-discreto" onClick={salirModoEnfoque}>
+            <Icono nombre="volver" />
+            Volver al resumen
+          </button>
+        </div>
+      </article>
+    );
   }
 
   return (
@@ -84,6 +163,18 @@ export default function ResultadoDocumento({
             ))}
           </ol>
           <p>Estas acciones fueron extraídas del documento original.</p>
+          <button
+            ref={botonModoEnfoque}
+            type="button"
+            className="boton boton-enfoque"
+            onClick={() => {
+              setIndicePaso(0);
+              setModoEnfoque(true);
+            }}
+            disabled={ocupado}
+          >
+            Modo enfoque
+          </button>
         </section>
       )}
 
